@@ -1,0 +1,38 @@
+* Projekt Orange - web -
+ * Orange Extension for jQuery or Standalone
+ * Bringing even more advanced coding laziness to the developer
+ * Version 2.1.8 - beta
+ * author:Donovan Walker
+ *
+ * You may use this code and modify it freely so long as you maintain original credit at the top.
+ * thanks!
+ *
+ * *HTML Snippet Engine (Snippet + JSON = HTML) Put it in the DOM or get a string back. Ideal for server JSON callbacks
+ * *Javascript Object Inspector (See ALL of a javascript object at runtime with a single call)
+ * *Firebug "beta site" Log (Is your site in beta? Logs to the firebug console if it exists, doesn't crash if not. Optional JOI output)
+ * * Form Data (Javascript Object->Form Fields, Form Fields->Javascript Object) for convenience, you know?
+ *
+ *
+ * METHOD REFERENCE
+ * $("#elementID").listen(inConfig)
+ * $("#elementID").snippet(snippetName, data) <- (name of snippet stored in jQuery, properly formatted data object)
+ * $("#elementID").snippetString(snippetString, data) <- (the actual snippet, properly formatted data object)
+ *
+ * FUNCTION REFERENCE
+ * $.setSnippetLib(inSnippetHash) <- (a js Object where each named attribute is a snippet)
+ *										sets the snippets for this library.  Good if you have a lot of snippets and want to keep them handy
+ * $.snippetString(snippetString, data) <- (the actual snippet, properly formatted data object)
+ *																				returns the filled snippet
+ * $.getSnippets(inURL) <- (inURL, the url of a file containing multiple snippets)
+ *
+ * $.getSnippets(inURLHash) <- (inURLHash:a js Object where each named attribute is the url to a single snippet)
+ *										so this function will retrieve snippets from a server and store them in the orange snippet library.
+ *										they can then be used by calling snippet with the name the url was associated with in the original js object
+ *										js Object. like so:
+ *															$.loadURLSnippets({"my_tpl":"http://supernoggies.com/js_snippets/my_snippet.html",
+ *																					"your_tpl":"/js_snippets/u_snippet.html"})
+ *															$("#target").snippet("my_tpl", data);
+ *
+ * $.objFromDom(inElementIDArray, inPrefix) <- Creates a Javascript Object from html form elements with the
+ * $.fillForm(inObj, inPrefix)
+ * $.inspect(inObj, inConfig)
