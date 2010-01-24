@@ -1,17 +1,17 @@
-=With jQuery=
-==METHOD REFERENCE==
-'$("#elementID").listen(inConfig)
- $("#elementID").snippet(snippetName, data) <- (name of snippet stored in jQuery, properly formatted data object)
- $("#elementID").snippetString(snippetString, data) <- (the actual snippet, properly formatted data object)'
+==With jQuery==
+===METHOD REFERENCE===
+$("#elementID").listen(inConfig)
+$("#elementID").snippet(snippetName, data) <- (name of snippet stored in jQuery, properly formatted data object)
+$("#elementID").snippetString(snippetString, data) <- (the actual snippet, properly formatted data object)
 
-==FUNCTION REFERENCE==
- $.setSnippetLib(inSnippetHash) <- (a js Object where each named attribute is a snippet)
+===FUNCTION REFERENCE===
+$.setSnippetLib(inSnippetHash) <- (a js Object where each named attribute is a snippet)
 										sets the snippets for this library.  Good if you have a lot of snippets and want to keep them handy
- $.snippetString(snippetString, data) <- (the actual snippet, properly formatted data object)
+$.snippetString(snippetString, data) <- (the actual snippet, properly formatted data object)
 																				returns the filled snippet
- $.getSnippets(inURL) <- (inURL, the url of a file containing multiple snippets)
+$.getSnippets(inURL) <- (inURL, the url of a file containing multiple snippets)
 
- $.getSnippets(inURLHash) <- (inURLHash:a js Object where each named attribute is the url to a single snippet)
+$.getSnippets(inURLHash) <- (inURLHash:a js Object where each named attribute is the url to a single snippet)
 										so this function will retrieve snippets from a server and store them in the orange snippet library.
 										they can then be used by calling snippet with the name the url was associated with in the original js object
 										js Object. like so:
@@ -19,6 +19,6 @@
 																					"your_tpl":"/js_snippets/u_snippet.html"})
 															$("#target").snippet("my_tpl", data);
 
- $.objFromDom(inElementIDArray, inPrefix) <- Creates a Javascript Object from html form elements with the
- $.fillForm(inObj, inPrefix)
- $.inspect(inObj, inConfig)
+$.objFromDom(inElementIDArray, inPrefix) <- Creates a Javascript Object from html form elements with the
+$.fillForm(inObj, inPrefix)
+$.inspect(inObj, inConfig)
