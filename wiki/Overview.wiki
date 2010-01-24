@@ -19,6 +19,6 @@ $.getSnippets(inURLHash) <- (inURLHash:a js Object where each named attribute is
 																					"your_tpl":"/js_snippets/u_snippet.html"})
 															$("#target").snippet("my_tpl", data);
 
-$.objFromDom(inElementIDArray, inPrefix) <- Creates a Javascript Object from html form elements with the
+$.ofd(inElementIDArray, inPrefix) <- Creates a Javascript Object from html form elements with the
 $.fillForm(inObj, inPrefix)
 $.inspect(inObj, inConfig)
