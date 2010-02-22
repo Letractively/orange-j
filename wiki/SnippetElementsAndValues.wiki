@@ -1,0 +1,7 @@
+#summary How to use the most basic Element tag the 'value' {val} tag
+
+= Introduction =
+
+The value tag is the most basic snippet tag, "{val}". While easy to use, this page will go over some of the options you can add to this tag to help keep your html running smoothly
+
+= Details =
