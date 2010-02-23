@@ -1,4 +1,4 @@
-#summary How to use the list tag {somename[]}
+#summary How to use the list tag {somename[]} to iterate over an array or object
 
 = Introduction =
 
