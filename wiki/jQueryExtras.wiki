@@ -5,6 +5,8 @@
 
 
 
-= Methods =
+== Methods ==
+  * *$(* _html ID_ *).validate(* _regEx_ *)* For input elements! Matches the first elment only! The input element's value is evaluated by _regular expression_ for a match. Returns the value if it matches, false on fail.
 
-  * *$(*_input element htmlID_*).validate(*_regular expression_*)* The input element's value is evaluated by _regular expression_ for a match. Returns the value if it matches, false on fail.
+== Functions == 
+  * *$.urlParam(* _param, [defaultVal]_ *)* Gets the parameter _param_ from the page's url. If the parameter doesn't exist returns _defaultVal_ (if passed in) or false.
