@@ -13,5 +13,6 @@ Lists, defined by  are Orange-J's way of iterating over Javascript arrays (and J
 == the listInc and arrayInc tags ==
 These are special tags that work only within lists. They are the list/array index 
 the snippet is currently on. 
+
 The difference is, if you pass an object to a template element expecting a list, the 'listInc' will give you the current numeric index (just as if the object were a list)
 while 'arrayInc' will give you the actual property name or 'key' for the current index.
