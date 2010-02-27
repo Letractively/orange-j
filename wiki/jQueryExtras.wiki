@@ -1,0 +1,10 @@
+#summary A few helpful functions
+
+= Introduction =
+
+
+
+
+= Methods =
+
+  * *$(*_input element htmlID_*).validate(*_regular expression_*)* The input element's value is evaluated by _regular expression_ for a match. Returns the value if it matches, false on fail.
