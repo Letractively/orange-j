@@ -9,3 +9,7 @@ Lists, defined by  are Orange-J's way of iterating over Javascript arrays (and J
   * *cycleName* _ex:{somename[] cycleName=class odd|even|moreodd}_ 
     * Within the markup of 'somename' the tag {class} will be replaced with 'odd', 'even', or 'moreodd'. It is possible to have as many values separated by '|' as you like. 
     * If the current object has an attribute 'class' it's value will replace the cycleName value.
+
+== the listInc and arrayInc tags ==
+These are special tags that work only within lists. They are the list/array index 
+the snippet is currently on. There is no difference between them.
