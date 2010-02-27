@@ -1,4 +1,11 @@
 ==With jQuery==
+It is important to note this documentation makes a distinction between jQuery _*methods*_ and _*functions*_. 
+
+A _*method*_ is used when matching elements in jQuery and called like so _"$(cssExpr).*method*()"_
+
+A _*function*_ is used just like a regular Javascript function that's been hung off the jQuery object. _"$.*function*()"_
+
+
 ===METHOD REFERENCE===
 $("#elementID").listen(inConfig)
 $("#elementID").snippet(snippetName, data) <- (name of snippet stored in jQuery, properly formatted data object)
