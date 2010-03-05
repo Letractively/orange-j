@@ -10,21 +10,36 @@ Embedding functions inside snippets are a powerful way to add intelligent behavi
 Functions are declared one of two ways.
   # *block style* In this example we see a classic Orange-J open and close block where the function is included in the opening tag. _Of primary interest is the way the snippet treats return values._ In the example below, if the function within returns boolean (true) the example will output 'I am zippy'. If the function returns false the snippet will output an empty string. If the function returns anything other than a boolean the snippet will output the returned value in place of the text within the function's block.
 {{{
-{somename() { 
+//Snippet
+{functionName() { 
   if(obj.name == "george") return true;
   else if(obj.name == "frank") return false;
   else return obj.name;
 }}
   I am zippy 
-{()somename}
+{()functionName}
 
-Output
-obj.name == "george" -> "I am zippy"
-obj.name == "frank"  -> ""
-obj.name == "bill"   -> "bill"
+//Javascript
+$.snippet({name:"george"}); //outputs "I am zippy"
+$.snippet({name:"frank"}); //outputs ""
+$.snippet({name:"bill"}); //outputs "bill"
+
 }}} 
-  # *operator style* ---- _not implemented yet_ ---- Here we see the functions implemented with the operator tag {#func { somecode }} In this case the function's return value (if there is one) will always be used as output.
+  # *operator style*  Here we see the functions implemented with the operator tag {#func { somecode }} In this case the function's return value (if there is one) will always be used as output.
+{{{
+//Snippet
+{#func { 
+  if(obj.name == "george") return true;
+  else if(obj.name == "frank") return false;
+  else return obj.name.substring(5);
+}}
 
+//Javascript
+$.snippet({name:"george"}); //outputs "true"
+$.snippet({name:"frank"}); //outputs "false"
+$.snippet({name:"bill zarquon"}); //outputs "zarquon"
+
+}}} 
 == Scope and Accessible Variables ==
 
 _section still being written_
