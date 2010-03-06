@@ -1,0 +1,4 @@
+#summary A list of 'gotchas' and little things to know that aren't immediately obvious
+
+=== Snippets ===
+  # *Parent Elements* When working with parent elements in templates, know that in the case of objects, you are actually traversing up the template tree. This means that while you may have been 4 levels deep in the object hierarchy, if you are using tags to access an array or object that is much higher (say, top level) in the hierarchy, elements below that array or object will not be easily accessible to you. (It can be done through functions {#func} but is not recommended.
