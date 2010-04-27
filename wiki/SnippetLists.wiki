@@ -14,5 +14,7 @@ Lists, defined by  are Orange-J's way of iterating over Javascript arrays (and J
 These are special tags that work only within lists. They are the list/array index 
 the snippet is currently on. 
 
+*Functions & if statements with listInc and arrayInc tags* are a little different. Because functions and if statements are represented within their own structure in the template, to address listInc and arrayInc you need to say 'this.parent.listInc' and 'this.parent.arrayInc' within {#if and {#func and {function()
+
 *Difference between the two* If you pass an object to a template element expecting a list, the 'listInc' will give you the current numeric index (just as if the object were a list)
-while 'arrayInc' will give you the actual property name or 'key' for the current index.
+while 'arrayInc' will give you the actual property name or 'key' for the current attribute/index.
