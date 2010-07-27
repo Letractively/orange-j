@@ -23,5 +23,9 @@ Though the focus of Snippets is web-applications that never reload, simple websi
  * *Snippets are easy* If you know HTML and a little Javascript, Snippets will make writing dynamic web pages and web applications easier, and faster.
 
 
-= How to use Snippets - function quick reference & tutorial - =
+= How to use Snippets - quick reference & tutorial - =
+== Tags ==
+ * {#snippet name=""}snippet and htmlcode{/snippet}
+ * {#func { javascript code }}
+ * {tag}
 *Debugger* http://projektorange.com/page.php?name=j_snippet_debugger
