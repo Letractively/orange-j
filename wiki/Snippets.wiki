@@ -25,7 +25,7 @@ Though the focus of Snippets is web-applications that never reload, simple websi
 
 = How to use Snippets - quick reference & tutorial - =
 == Tags ==
- * {#snippet name=""}snippet and htmlcode{/snippet}
+ * {#snippet name="_mysnippet_"}snippet and htmlcode{/snippet}
  * {#func { javascript code }}
  * {tag}
 *Debugger* http://projektorange.com/page.php?name=j_snippet_debugger
