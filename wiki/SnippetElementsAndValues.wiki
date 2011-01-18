@@ -40,3 +40,12 @@ The value tag is the most basic snippet tag, "{val}". While easy to use, this pa
                 json:   "me & my dog"
                 output: "me &amp;...&" 
 }}}
+  * *default* the default value for an element if there is no value for 
+it.
+
+            ex:
+{{{
+                snippet:'{val default="bug"}'
+                json:   "me & my dog"
+                output: "me &amp; my dog"
+}}}
