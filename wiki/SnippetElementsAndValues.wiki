@@ -46,6 +46,4 @@ it.
             ex:
 {{{
                 snippet:'{val default="bug"}'
-                json:   "me & my dog"
-                output: "me &amp; my dog"
 }}}
