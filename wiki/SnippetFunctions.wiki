@@ -65,4 +65,10 @@ Functions are passed the current level JSON object as 'obj' and are executed via
 
 Using call gives the 'this' reference some rather useful properties.
 
+this.parentValue('<name>')
+
 ===obj===
+
+== Peculiarities ==
+Javascript function syntax pushes JSON pretty hard. It is useful to wrap your return statment in parens () to avoid errors when your templates are coming over the wire. 
+Similarly, adding carriage returns and spaces a the beginning of a function declaration and just before the closing double braces '}}' can help clear up other inexplicable problems.
