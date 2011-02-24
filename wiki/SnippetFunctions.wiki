@@ -44,7 +44,7 @@ $.snippet({name:"bill zarquon"}); //outputs "zarquon"
 
 _section still being written_
 
-Functions are passed the current level JSON object as 'obj' and are executed via 'call' off the current snippet element. The code example that follows will be used to explain 'call' and 'this'
+As with #if conditionals, functions are passed the current level JSON object as 'obj' and are executed via 'call' off the current snippet element. That means you have access to all the Snippet functions and attributes via 'this.<function name>()'
 
 *snippet*
 {{{
@@ -57,7 +57,10 @@ Functions are passed the current level JSON object as 'obj' and are executed via
 }}}
 *Javascript object/json*
 {{{
-{aList:["Obama","Loves","You", "No, really."], affiliation:"Democrat"}
+{
+  aList:["Obama","Loves","You", "No, really."], 
+  affiliation:"Democrat"
+}
 }}}
 
 
