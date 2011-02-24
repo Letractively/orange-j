@@ -27,5 +27,10 @@ Though the focus of Snippets is web-applications that never reload, simple websi
 == Tags ==
  * {#snippet name="_mysnippet_"}snippet and htmlcode{/snippet}
  * {#func { javascript code }}
- * {tag}
+ * {#if javascript code}snippet and htmlcode{#elseif javascript code}snippet and html code{#else}snippet and html code{/if}
+ * {#lit}html including things like '{tag}'{/lit}
+ * {#include "_snippet name_"}
+ * {sometag}
+ * {sometag.tagattr}
+ * {sometagthatisalist[]}snippet and html code that will be iterated over for each item in sometagthatisalist{[]sometagthatisalist}
 *Debugger* http://projektorange.com/page.php?name=j_snippet_debugger
