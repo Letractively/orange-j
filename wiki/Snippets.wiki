@@ -1,4 +1,4 @@
-#What snippets are, how to use them, and why.
+#summary Introduction (what/why) and quick reference.
 
 = Introduction =
 
@@ -33,4 +33,17 @@ Though the focus of Snippets is web-applications that never reload, simple websi
  * *{sometag}*
  * *{sometag.tagattr}*
  * *{sometagthatisalist[[]]}*snippet and html code that will be iterated over for each item in sometagthatisalist *{[[]]sometagthatisalist}*
+== Functions, attributes and 'obj' (for use within #func func() & #if) ==
+ * *this.parentValue(<tagname>)*
+ * *this.htmlentities(<somestring>)*
+ * *this.stripHTML*
+ * *this.collapseWhite(<somestring>)*
+ * *this.getDefaultValue()* 
+ * *this.parent*
+ * *this.listInc*
+ * *this.cycleInc*
+ * *this.arrayInc*
+ * *this.listLen*
+ * *obj* _//The current level js object_
+ * *obj.<attribute name>* _//an attribute/property of current level js object_
 *Debugger* http://projektorange.com/page.php?name=j_snippet_debugger
