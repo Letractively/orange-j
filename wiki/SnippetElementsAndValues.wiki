@@ -65,12 +65,12 @@ The value tag is the most basic snippet tag, "{val}". While easy to use, this pa
 
             ex:
 {{{
-                snippet:'{val uppercase}'
+                snippet:'{val lowercase}'
 }}}
 
   * *uppercaseFirst* transforms a string value to all lowercase with the first character uppercased.
 
             ex:
 {{{
-                snippet:'{val uppercase}'
+                snippet:'{val uppercaseFirst}'
 }}}
