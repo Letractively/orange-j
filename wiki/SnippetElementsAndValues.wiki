@@ -54,7 +54,21 @@ The value tag is the most basic snippet tag, "{val}". While easy to use, this pa
                 snippet:'{val maxlen="30" maxwords}'
 }}}
 
-  * *uppercase*, *lowercase*, *uppercaseFirst* transforms a string value to all uppercase, all lowercase, or all lowercase with the first character uppercased.
+  * *uppercase* transforms a string value to all uppercase
+
+            ex:
+{{{
+                snippet:'{val uppercase}'
+}}}
+
+  * *lowercase* transforms a string value to all lowercase
+
+            ex:
+{{{
+                snippet:'{val uppercase}'
+}}}
+
+  * *uppercaseFirst* transforms a string value to all lowercase with the first character uppercased.
 
             ex:
 {{{
