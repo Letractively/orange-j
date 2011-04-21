@@ -39,11 +39,11 @@ Though the focus of Snippets is web-applications that never reload, simple websi
  * *this.stripHTML*
  * *this.collapseWhite(<somestring>)*
  * *this.getDefaultValue()* 
- * *this.parent*
- * *this.listInc*
- * *this.cycleInc*
- * *this.arrayInc*
- * *this.listLen*
+ * *this.parent* 
+ * *this.listInc* or *this.listIndex()*
+ * *this.cycleInc* 
+ * *this.arrayInc* or *this.arrayIndex()*
+ * *this.listLen* or *this.listLength()*
  * *obj* _//The current level js object_
  * *obj.<attribute name>* _//an attribute/property of current level js object_
 *Debugger* http://projektorange.com/page.php?name=j_snippet_debugger
