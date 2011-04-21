@@ -35,8 +35,9 @@ Though the focus of Snippets is web-applications that never reload, simple websi
  * *{sometagthatisalist[[]]}*snippet and html code that will be iterated over for each item in sometagthatisalist *{[[]]sometagthatisalist}*
 == Functions, attributes and 'obj' (for use within #func func() & #if) ==
  * *this.parentValue(<tagname>)*
+ * *this.getObjValue(<tagname>)*
  * *this.htmlentities(<somestring>)*
- * *this.stripHTML*
+ * *this.stripHTML(<somestring>)*
  * *this.collapseWhite(<somestring>)*
  * *this.getDefaultValue()* 
  * *this.parent* 
