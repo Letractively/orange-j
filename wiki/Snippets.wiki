@@ -25,13 +25,16 @@ Though the focus of Snippets is web-applications that never reload, simple websi
 
 = How to use Snippets - quick reference & tutorial - =
 == Tags ==
- * *{#snippet name="_mysnippet_"}* snippet and htmlcode *{/snippet}*
- * *{#func { javascript code }}*
+ * *{#snippet name="_mysnippet_"}* (html) markup and snippet tags *{/snippet}* //the wrapper for any snippet
+ * *{sometag}* //a simple value tag. Can be a static value, or a function attached to the object you passed in.
+ * *{sometag.tagattr}* //an attribute of 'sometag'. This is shorthand for {sometag{}}
+
+ * *{#func { javascript code }}* //an inline javascript function. any returns a value
  * *{#if javascript code}*snippet and htmlcode *{#elseif javascript code}* snippet and html code *{#else}* snippet and html code *{/if}*
- * *{#lit}*html including things like '{tag}'*{/lit}*
- * *{#include "_snippet name_"}*
- * *{sometag}*
- * *{sometag.tagattr}*
+ * *{#lit}*html including things like '{tag}'*{/lit}* //literal tags, so you don't need to worry about "*{stuff}*"
+ * *{#include "_snippet name_"}* //include a snippet within another snippet
+
+ * *{sometag{}}* markup *{tagattr}* more markup *{tagattrB}* markup *{{}sometag}* //for traversing the passed in objects attributes where {sometag.tagattr} does not suffice
  * *{sometagthatisalist[[]]}*snippet and html code that will be iterated over for each item in sometagthatisalist *{[[]]sometagthatisalist}*
 == Functions, attributes and 'obj' (for use within #func func() & #if) ==
  * *this.parentValue(<tagname>)*
