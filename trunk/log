@@ -1,0 +1,150 @@
+TODO: (current priority)
+- Switch
+    syntax:
+        {#switch}
+                {#case 1}
+                {#break}
+                {#case "1"}
+                {#case > 2}
+        {/switch}
+2011.04.21
+   * First revision to use svn
+   * Added jQuery.ro /jQuery.oj.ro
+   * Added callback function option to getSnippets
+   * Added value tag {tag} can be a function (that then gets called before performing tag operations on the result
+   //the following will be available via 'this.function name()' for use within snippet functions or comparisons. {listLen},{listInc},{arrayInc} are already available as tags.
+   * Added Snippet.prototype.listLength()
+   * Added Snippet.prototype.listIndex()
+   * Added Snippet.prototype.arrayIndex()
+2011.04.14
+   * Removed '$' reference, one was an un-needed log statement.
+2011.04.02
+   * Added 'uppercase' to template engine for string values (lowercases all chars)
+   * Added 'lowercase' to template engine for string values (lowercases all chars)
+   * Added 'uppercaseFirst' to template engine for string values (Uppercases first char, lowercases all chars after that.)
+2011.03.05
+   * Changed version number to 2.4 to reflect major changes
+   * Updated code to be compatible with jQuery 1.5. - migrated all non dom functions to jQuery.oj.<oldfuncname>
+     All jQuery root namespace non-dom functions are now depricated.
+     Orange-J Plugin dynamically maps jQuery.oj functions to root jQuery namespace if they're not taken. Full removal takes place when someone else creates a function
+     of the same name.
+2010.09.26
+   *  Added 'maxwords' argument to value tags. If set this argument will cause the 'maxlen' argument to chop at the last whitespace or &nbsp; character
+      before maxlen-maxchop is reached.
+2010.09.23
+   *  Added 'striphtml' argument to value tags. Uses a simple html stripper.
+   *  Fixed bug that didn't allow use of 'include' when adding multiple snippets via single string
+   ** NEW TOY ** an alpha verison label manager is included in the file 'jquery.orange.lablemanager.js'
+      jquery.orange.lablemanager.js is intended for playing with. - not deployable code !! -
+      Takes labels as an array, as objects, caches (or not) and does ajax queries for data if you like.
+      There are no docs as yet, and some features may be buggy.
+
+2010.07.26
+   *  Fixed issue with lists and getting parent node values. (list nodes were checking the list object [] rather than the current list NODE object [i])
+      eg,
+      Where the data is:
+      {lista:[ {  namea1:"johna1",
+                  namea2:"blaha2"
+                  listb:[
+                     {nameb1:"b1.1"},
+                     {nameb1:"b1.2"}
+                  ]
+               }
+      ]}
+
+      And the template is:
+      {lista[]} {namea1} {namea2}
+         {listb[]}{nameb1} {namea2}
+         {[]listb}
+      {[]lista}
+      The second instance of namea2 would be blank if it was defined as an attribute of the object that also defined listb.
+   *  Re-added old log files
+   *  Updated readme file
+
+2010.06.25
+   *  Updated listener documentation
+   *  Fixed auto initialization of regEx config variables in listener
+   *  Added more intelligent behavior for 'onMatch' configuration for keyCode and chars elements of listener configuration
+2010.04.26
+   *  Updated #if and #func so that they are called off the parent namespace. 'this' now refers to the next node up. While some information may be lost, the context is more relevant
+      and will probably result is less verbose templates. eg, an 'if' within an array using listInc might look like {#if this.listInc == 10} instead of {#if this.parent.listInc == 10}
+2010.03.04
+   *  added support for the {#func { 'Javascript' }} where if 'Javascript returns a string, it will be injected into the template;
+      it is essentially a simplified version of {functionName() {'Javascript'}}somehtml{()functionName}
+   *  decided not to include minified version in this release 2.3 beta.
+2010.02.27
+    * added $.len() function
+    * changed assumptions about what makes a list. Now does !(obj instanceof Array) instead of (typeof obj.length == "undefined")
+      both may produce unexpected results, but the new way fails in a less catastrophic, more diagnosable manner.
+2010.01.24
+    * massive updates to the listener
+        current documentation is no-longer correct!
+    * added support for the '.'
+        works for values, objects {} & lists [].
+        syntax
+            {foo.bar.bardybarbar}
+    * added support for multiple snippets per string
+        syntax:
+            {#snippets name=""}{/snippets}
+2009.12.23
+    * "undocumented feature" fix.
+2009.12.22
+    * added attributes for '{value}' and '{list[]}' tags. both are optional
+        maxlen=x
+            the maximum length of a value, or the number of items rendered by a list
+            ex:
+                snippet: "{val maxlen=4}"
+                json:    "{asdfs}"
+                output:  "asdf"
+
+        maxend="somestring"
+            if 'maxlen' is arrived at, maxend will be appended to the end of the tag's output string
+            ex:
+                snippet: "{val maxlen=4 maxend="..."}"
+                json:    "{asdfs}"
+                output:  "asdf..."
+    * added attributes for '{value}
+        maxchop=x
+            if 'maxlen' is arrived at, max chop is the number of ADDITIONAL characters to remove. The strings length would become maxlen - maxchop + maxend.length.
+            ex:
+                snippet: "{val maxlen=4 maxchop=1}"
+                json:    "{asdfs}"
+                output:  "asd"
+        htmlentities
+            translates basic html tags into corresponding html entity codes. (helps with rendering items inside input elements and textareas, or in preventing XXS attacks when rendering untrusted user generated input)
+            note* htmlentities does not escape 'maxend' values
+            ex:
+                snippet:"{val htmlentities}"
+                json:   "me & my dog"
+                output: "me &amp; my dog"
+            ex2:
+                snippet:"{val htmlentities maxlen=5 maxend="...&" maxchop=1}"
+                json:   "me & my dog"
+                output: "me &amp;...&"
+2009.12.15
+    * Snippet.fill(jsonElements) / $().snippet("snippetname", jsonElements) now supports *jsonElements* being a string, number or array
+        If *jsonElements* is an array, the snippet will behave as though it is a list[] snippet.
+        If *jsonElements* is a string or number the snippet will behave as though you'd passed {val:jsonElements}
+    * Else & Elseif added to if
+        syntax:
+            {#if expr}
+            {#elseif expr}
+            {#else}
+            {/if}
+
+2009.08.16
+    * SnippetLib Class Added for non jQuery snippet library support.
+        SnippetLib.add(name or hash, snippetstring -optional) //add a snippetstring or a hash of snippet strings
+        SnippetLib.has(name) //has a specific snippet (returns snippet or false)
+        SnippetLib.fill(name, data) //fills a given snippet
+        SnippetLib.fillString(snippetstring, data) //fills a given string
+
+    * Snippets now support including other snippets when stored in jQuery or SnippetLib
+        ex:
+        {#include "snippetname"}
+    * Snippets now support if (but not else or elseif) have access to current context with 'obj'
+        ex:
+        {list:[{name:"george"}, {name:"jane", selected:true}, {name:"sam"}]}
+        <select>{list[]}
+         <option value="{name}" {#if obj.selected}selected{/if}>{name}</option>
+        {[]list}</select>
