@@ -1,4 +1,5 @@
 TODO: (current priority)
+- '1' based list counter
 - Switch
     syntax:
         {#switch}
@@ -7,6 +8,9 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2011.04.23
+   * Added {listPos} a '1' based list counter tag.
+   * Snippet.prototype.listPos()
 2011.04.21
    * First revision to use svn
    * Added jQuery.ro /jQuery.oj.ro
