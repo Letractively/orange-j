@@ -100,6 +100,7 @@ function Snippet(inString, inLib, inParent) {
    this.inputString    = inString; //full input string
    this.key            = null;     //this snippets key
    this.listInc        = 0;        //list increment.. changes
+   this.listPos        = 0;
    this.parent         = false;
    this.sLib           = false;
    this.tag            = null;     //full tag
@@ -233,6 +234,11 @@ function Snippet(inString, inLib, inParent) {
 
 Snippet.prototype.listLength = function() {
   return this.getObjValue('listLen');
+}
+
+
+Snippet.prototype.listPos = function() {
+  return this.getObjValue('listPos');
 }
 
 
@@ -495,11 +501,11 @@ Snippet.prototype.fill = function(obj) {
          }
       case "array" :
          //if(typeof(obj.length) == "undefined") { // old way assumed something MIGHT be numerically indexable if length exists... NOPE
+         this.cycleInc = this.arrayInc = this.listInc = 0;
+         this.listPos = 1;
          if(!(obj instanceof Array)) {
             if(typeof(obj) == "object") {
                this.listLen = jQuery.len(obj);
-               this.cycleInc = 0;
-               this.listInc = 0;
                for(var j in obj) if(obj.hasOwnProperty(j)) {
                   this.arrayInc = j;
                   if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
@@ -511,17 +517,18 @@ Snippet.prototype.fill = function(obj) {
                      out += this.fillSnippets(obj[j]);
                   }
                   this.listInc++;
+                  this.listPos = this.listInc + 1;
                   this.cycleInc++;
                }
             } else {
                return(out + this.inner);
             }
-         } else {
-            this.cycleInc = this.arrayInc = this.listInc = 0;
+         } else {            
             this.listLen = obj.length;
             for(var j = 0; j < obj.length; j++) {
                if(!this.config.maxlen || this.config.maxlen < j) {
                   this.arrayInc = this.listInc = j;
+                  this.listPos = this.listInc + 1;
                   if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
                   if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
                      out += this.fillSnippets({
@@ -600,6 +607,8 @@ Snippet.prototype.getObjValue = function(inKey) {
                return this.arrayInc;
             case "listInc" :
                return this.listInc;
+            case "listPos" :
+               return this.listPos;
             case "listLen" :
                return this.listLen;
          }
