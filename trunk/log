@@ -1,5 +1,5 @@
 TODO: (current priority)
-- '1' based list counter
+- Default html for object not exist?
 - Switch
     syntax:
         {#switch}
@@ -8,6 +8,8 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2011.04.24
+   * Bugfix - '.' syntax tags were unable to have '_' in their attribute names after the first '.'
 2011.04.23
    * Added {listPos} a '1' based list counter tag.
    * Snippet.prototype.listPos()

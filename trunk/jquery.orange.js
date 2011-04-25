@@ -362,7 +362,7 @@ Snippet.prototype.constructIf = function(inString) {
 }
 
 
-Snippet.prototype.tagOpen = /{(#template |#lit\}|#func |#if |#elseif |#else|#include |([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z])+)*((\{\})|(\[\]|\(\)))*( |\}))/; //added support for '.' and vars that begin with numbers
+Snippet.prototype.tagOpen = /{(#template |#lit\}|#func |#if |#elseif |#else|#include |([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*((\{\})|(\[\]|\(\)))*( |\}))/; //added support for '.' and vars that begin with numbers
 Snippet.prototype.tagOpenCloseBrace = /(^|[^\\])}/;  //not yet used
 
 
