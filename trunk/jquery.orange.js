@@ -158,7 +158,7 @@ function Snippet(inString, inLib, inParent) {
       var closeTag = null;
       var z = 0;
 
-        
+
 
       while(true) {
          match = this.tagOpen.exec(working);
@@ -170,7 +170,7 @@ function Snippet(inString, inLib, inParent) {
          var tag = matchString.substring(1, matchString.length -1);
          //if the child is an object or array snippet, we need to find the end tag and give it all the characters in-between
          tagType = this.tagType(tag);
-             
+
          switch(tagType) {
             case "object" :
             case "array" :
@@ -523,7 +523,7 @@ Snippet.prototype.fill = function(obj) {
             } else {
                return(out + this.inner);
             }
-         } else {            
+         } else {
             this.listLen = obj.length;
             for(var j = 0; j < obj.length; j++) {
                if(!this.config.maxlen || this.config.maxlen < j) {
@@ -722,7 +722,7 @@ Snippet.prototype.parseConfig = function(inString) {
          index = inString.indexOf("maxwords");
          if(index > -1) {
             this.config.maxwords = true;
-            
+
             inString = inString.replace("maxwords");
          }
          index = inString.indexOf("maxchop=");
@@ -959,11 +959,11 @@ KeyListener.prototype.processKey = function( e ){
       }
       delete newval;
    }
-   
+
    if(!matched && this.config.defaultAction) {
       action = this.config.defaultAction;
    }
-   
+
    if(preventDefault) {
       if (e.preventDefault) e.preventDefault();
       if (e.stopPropagation) e.stopPropagation();
