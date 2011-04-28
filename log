@@ -1,5 +1,6 @@
 TODO: (current priority)
 - Default html for object not exist?
+- Support '.' syntaxt for objects using {}
 - Switch
     syntax:
         {#switch}
@@ -8,6 +9,9 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2011.04.27
+   * Added support for '.' tags being lists[] or objects{}
+   * Bugfix - cycleName tag wasn't supported in upward namespace search. now is.
 2011.04.24
    * Bugfix - '.' syntax tags were unable to have '_' in their attribute names after the first '.'
 2011.04.23

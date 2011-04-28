@@ -2,7 +2,7 @@
  * Projekt Orange - Orange-J -
  * Orange Extension for jQuery or Standalone
  * Bringing even more advanced coding laziness to the developer
- * Version 2.4 beta 2
+ * Version 2.4 beta 3
  * author: Donovan Walker
  */
 
@@ -131,7 +131,7 @@ function Snippet(inString, inLib, inParent) {
                this.parseConfig(inString.substring(1));
             else
                this.parseConfig(inString.substring(1, inString.indexOf("}}")));
-               inString = inString.substring(inString.indexOf("}}") + 2);
+            inString = inString.substring(inString.indexOf("}}") + 2);
             break;
          default :
             this.parseConfig(inString.substring(1, inString.indexOf("}")));
@@ -150,11 +150,9 @@ function Snippet(inString, inLib, inParent) {
    } else if(this.type == "object" || this.type == "array" || this.type == "function") {
       if(this.type == "#func") return (this);
       this.key =  this.tag.substring(0, this.tag.length - 2); //trim off the [] or {}
-      var tagSuffix = null;
       var tagType = null;
       var matchString = null;
       var working = inString;
-      var key = null;
       var closeTag = null;
       var z = 0;
 
@@ -176,21 +174,8 @@ function Snippet(inString, inLib, inParent) {
             case "array" :
             case "function" :
             case "if" :
-               if(tag.indexOf("#") == 0) {
-                  key = tag.substring(1);
-                  if(tag == "#func") {
-                     closeTag = "}}";
-                  } else {
-                     closeTag = "{/" + key + "}";
-                  }
-               } else {
-                  tagSuffix = tag.substring(tag.length - 2);
-                  key 	= tag.substring(0, tag.length - 2);
+               closeTag = this.getCloseTag(tag);
 
-                  closeTag = "{" + tagSuffix + key + "}";
-               }
-
-               //var newMatchIndex = working.indexOf(matchString, match.index + matchString.length);
                var newMatchIndex = working.indexOf(matchString, matchString.length);
                var matchCloseIndex = working.indexOf(closeTag);
                if(matchCloseIndex == -1) alert("error, no close for " + this.tagType(tag) + " " + tag);
@@ -203,7 +188,7 @@ function Snippet(inString, inLib, inParent) {
                   i++;
                }
                //we've found the closing tag for our new object or array Snippet now create it
-               snippet = new Snippet(this.rework(tag, working, matchCloseIndex), this.sLib, this);
+               snippet = new Snippet(this.rework(tag, tagType, working, matchCloseIndex), this.sLib, this);
                this.elements.push(snippet);
                working = working.substring(matchCloseIndex + closeTag.length);
                break;
@@ -217,7 +202,7 @@ function Snippet(inString, inLib, inParent) {
                break;
             default : //if tag is a value
                matchCloseIndex = working.indexOf("}");
-               snippet = new Snippet(this.rework(tag, working,  matchCloseIndex + 1), this.sLib, this);
+               snippet = new Snippet(this.rework(tag, tagType, working,  matchCloseIndex + 1), this.sLib, this);
 
                this.elements.push(snippet);
                working = working.substring(matchCloseIndex + 1);
@@ -229,6 +214,25 @@ function Snippet(inString, inLib, inParent) {
       this.key = this.tag;
    }
    return(this);
+}
+
+Snippet.prototype.getCloseTag = function(inTag) {
+   var key, closeTag, tagSuffix;
+   if(inTag.indexOf("#") == 0) {
+      key = inTag.substring(1);
+      if(inTag == "#func") {
+         closeTag = "}}";
+      } else {
+         closeTag = "{/" + key + "}";
+      }
+   } else {
+      tagSuffix = inTag.substring(inTag.length - 2);
+      key 	= inTag.substring(0, inTag.length - 2);
+
+      closeTag = "{" + tagSuffix + key + "}";
+   }
+   delete key, tagSuffix;
+   return closeTag;
 }
 
 
@@ -251,21 +255,42 @@ Snippet.prototype.arrayIndex = function() {
   return this.getObjValue('arrayInc');
 }
 
-
-Snippet.prototype.rework = function(tag, working, matchCloseIndex) {
-   var str = working.substring(0, matchCloseIndex);
+/**
+ * Analyses the opening tag and 'reworks' the working input string to expand '.' syntax tags into supported {object{}} tags
+ */
+Snippet.prototype.rework = function(tag, tagType, working, matchCloseIndex) {
+   var closeTags = "", openTags = "";
+   var outStr = working.substring(0, matchCloseIndex);
+   var tagList = tag.split('.');
    if(tag.indexOf(".") > 0) {
-      working = str.split(".");
-      str = working.shift() + "{}}";
-      str += "{" + working.join(".");
+      switch(tagType) {
+         case "value" :
+               working = outStr.split(".");
+               outStr = working.shift() + "{}}";
+               outStr += "{" + working.join(".");
+            break;
+         case "object" :
+         case "array" :
+            //we remove the opening tag from the output string EXCEPT for the last '}' This allows us to use attributes
+            outStr = outStr.substring(tag.length + 1);
+            openTags += "{" + tagList.shift() + "{}}";
+            while(tagList.length > 1) {
+               closeTags = "{{}" + tagList[0] + "}" + closeTags;
+               openTags += "{" + tagList.shift() + "{}}";
+            }
+            outStr = openTags + "{" + tagList[0] + "" + outStr + this.getCloseTag(tagList[0]) +closeTags;
+     }
+
    }
-   return str;
+   return outStr;
 }
 
 Snippet.prototype.reg = {
    htmltag:/<(?:.|\s)*?>/
    , whitespaceG:/\s+/g
    , nbspG:/&nbsp;/g
+   //,tagOpen: /{(#template |#lit\}|#func |#if |#elseif |#else|#include |([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*((\{\})|(\[\]|\(\)))*( |\}))/ //added support for '.' and vars that begin with numbers
+   //,tagOpenCloseBrace: /(^|[^\\])}/  //not yet used
 }
 
 Snippet.prototype.collapseWhite = function(inString) {
@@ -313,19 +338,7 @@ Snippet.prototype.constructIf = function(inString) {
          case "array" :
          case "function" :
          case "if" :
-            if(tag.indexOf("#") == 0) {
-               key = tag.substring(1);
-               if(tag == "#func") {
-                  closeTag = "}}";
-               } else {
-                  closeTag = "{/" + key + "}";
-               }
-            } else {
-               tagSuffix = tag.substring(tag.length - 2);
-               key 	= tag.substring(0, tag.length - 2);
-
-               closeTag = "{" + tagSuffix + key + "}";
-            }
+            closeTag = this.getCloseTag(tag);
 
             //var newMatchIndex = working.indexOf(matchString, match.index + matchString.length);
             var newMatchIndex = working.indexOf(matchString, matchString.length);
@@ -551,7 +564,10 @@ Snippet.prototype.fill = function(obj) {
    return(out);
 }
 
-
+/**
+ * Fills the child snippets of this snippet
+ * If the item is a list, is called within an outer loop that sets cycleName, cycleInc, etc
+ */
 Snippet.prototype.fillSnippets = function(obj) {
    var out = "";
    var snippet = null;
@@ -611,6 +627,8 @@ Snippet.prototype.getObjValue = function(inKey) {
                return this.listPos;
             case "listLen" :
                return this.listLen;
+            case this.cycleName :
+               return this.cycleValues[this.cycleInc];
          }
       }
 
@@ -1111,7 +1129,6 @@ if(typeof(jQuery) == "function") {
          config.stripSuffix = (config.stripSuffix)? '' : config.DOMSuffix;
 
          for(var i in inFormIDList) if(inFormIDList.hasOwnProperty(i)) {
-            //$.log("#" + config.DOMPrefix + inFormIDList[i] + config.DOMSuffix)
             obj[config.stripPrefix + inFormIDList[i] + config.stripSuffix] = jQuery("#" + config.DOMPrefix + inFormIDList[i] + config.DOMSuffix).val();
          }
          return(obj);
