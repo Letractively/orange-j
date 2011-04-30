@@ -777,13 +777,11 @@ Snippet.prototype.parseConfig = function(inString) {
          }
          index = inString.indexOf("uppercaseFirst");
          if(index > -1) {
-            jQuery.log('found uppercaseFirst');
             this.config.caseConvert = 'uppercaseFirst';
             inString = inString.replace("uppercaseFirst", "");
          }
          index = inString.indexOf("uppercase");
          if(index > -1) {
-            jQuery.log('found uppercase');
             this.config.caseConvert = 'uppercase';
             inString = inString.replace("uppercase", "");
          }
