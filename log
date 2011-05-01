@@ -9,6 +9,8 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2011.05.01
+   * Bugfix - uppercaseFirst now only modifies case of first letter (previously lowercased rest of string)
 2011.04.27
    * Added support for '.' tags being lists[] or objects{}
    * Bugfix - cycleName tag wasn't supported in upward namespace search. now is.
