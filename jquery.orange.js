@@ -466,7 +466,7 @@ Snippet.prototype.fill = function(obj) {
                   obj = obj.toLowerCase()
                   break;
                case 'uppercaseFirst' :
-                  obj = obj.substr(0,1).toUpperCase() + obj.substring(1).toLowerCase();
+                  obj = obj.substr(0,1).toUpperCase() + obj.substring(1);
                   break;
             }
          }
