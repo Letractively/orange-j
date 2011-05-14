@@ -10,6 +10,8 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2011.05.14
+   * Reduced number of alert error messages. Now throws Javascript errors.
 2011.05.13
    * Added {numberFormat="000000.00"} number of zeros before and after decimal. Min for before, max/min after.
 2011.05.12

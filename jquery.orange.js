@@ -49,8 +49,8 @@ SnippetLib.prototype.add = function(inNameOrObj, inStr) {
 
 SnippetLib.prototype.fill = function(inName, inObj, inConfig) {
    if(!this.snippets.hasOwnProperty(inName)) {
-      var msg = "snippet:'" + inName + "' not set";
-      if(!jQuery.log(msg)) alert(msg);
+      var msg = "SnippetLib Error: snippet '" + inName + "' not set";
+      jQuery.log(msg);
       return(false);
    }
    if(typeof inConfig == "object") {
@@ -121,7 +121,7 @@ function Snippet(inString, inLib, inParent) {
       this.tag = "root{}";
       this.type = this.tagType(this.tag);
    } else {
-
+      if(match === null) throw "Snippet Error: bad open tag";
       this.tag = match[0].substring(1, match[0].length - 1); //get the clean tag with no whitespace or opening {
       this.type = this.tagType(this.tag);
       inString = inString.substring(match[0].length-1)
@@ -180,13 +180,13 @@ function Snippet(inString, inLib, inParent) {
 
                var newMatchIndex = working.indexOf(matchString, matchString.length);
                var matchCloseIndex = working.indexOf(closeTag);
-               if(matchCloseIndex == -1) alert("error, no close for " + this.tagType(tag) + " " + tag);
+               if(matchCloseIndex == -1) throw "Snippet Error: no close for '" + this.tagType(tag) + "' " + tag;
                //because there may be nested tags of the same type/name
                var i = 0; //for debugging the snippets
                while(newMatchIndex < matchCloseIndex && newMatchIndex > -1) {
                   newMatchIndex = working.indexOf(matchString, newMatchIndex + matchString.length);
                   matchCloseIndex = working.indexOf(closeTag, matchCloseIndex + closeTag.length);
-                  if(matchCloseIndex == -1 && newMatchIndex == -1) alert("error, no close for " + this.tagType(tag) + " " + tag + " iteration:" + i);
+                  if(matchCloseIndex == -1 && newMatchIndex == -1) throw "Snippet Error, no close for '" + this.tagType(tag) + " " + tag + "' iteration:" + i;
                   i++;
                }
                //we've found the closing tag for our new object or array Snippet now create it
@@ -197,13 +197,14 @@ function Snippet(inString, inLib, inParent) {
             case "literal" :
                closeTag = "{/lit}";
                matchCloseIndex = working.indexOf(closeTag);
-               if(matchCloseIndex == -1) alert("error, no close for " + this.tagType(tag));
+               if(matchCloseIndex == -1) throw "Snippet Error: no close for '" + this.tagType(tag) + "'";
                this.elements.push(working.substring(6, matchCloseIndex));
                working = working.substring(matchCloseIndex + closeTag.length);
                matchCloseIndex = working.indexOf(closeTag, matchCloseIndex + closeTag.length);
                break;
             default : //if tag is a value
                matchCloseIndex = working.indexOf("}");
+               if(matchCloseIndex == -1) throw "Snippet Error: no close for '" + tag + "' near '" +inString.substring(0, 10) + "...'";
                snippet = new Snippet(this.rework(tag, tagType, working,  matchCloseIndex + 1), this.sLib, this);
 
                this.elements.push(snippet);
@@ -345,13 +346,13 @@ Snippet.prototype.constructIf = function(inString) {
             //var newMatchIndex = working.indexOf(matchString, match.index + matchString.length);
             var newMatchIndex = working.indexOf(matchString, matchString.length);
             var matchCloseIndex = working.indexOf(closeTag);
-            if(matchCloseIndex == -1) alert("error, no close for " + this.tagType(tag) + " " + tag);
+            if(matchCloseIndex == -1) throw "Snippet Error: no close for " + this.tagType(tag) + " " + tag;
             //because there may be nested tags of the same type/name
             var i = 0; //for debugging the snippets
             while(newMatchIndex < matchCloseIndex && newMatchIndex > -1) {
                newMatchIndex = working.indexOf(matchString, newMatchIndex + matchString.length);
                matchCloseIndex = working.indexOf(closeTag, matchCloseIndex + closeTag.length);
-               if(matchCloseIndex == -1 && newMatchIndex == -1) alert("error, no close for " + this.tagType(tag) + " " + tag + " iteration:" + i);
+               if(matchCloseIndex == -1 && newMatchIndex == -1) throw("Snippet Error: no close for " + this.tagType(tag) + " " + tag + " iteration:" + i);
                i++;
             }
             //we've found the closing tag for our new object or array Snippet now create it
@@ -475,7 +476,7 @@ Snippet.prototype.fill = function(obj) {
             }
             obj = out;
          }
-         
+
          if(this.config.dateFormat) {
             if(! isNaN (obj-0)) {
                this.dateConverter.setTime(obj);
@@ -502,7 +503,7 @@ Snippet.prototype.fill = function(obj) {
          return obj;
       case "include" :
          if(!this.sLib) {
-            alert("cannot use include when not using SnippetLib");
+            throw "Snippet Error: cannot use include when not using SnippetLib";
             return("");
          }
          return this.sLib.fill(this.includeSnippet, obj, {
@@ -768,7 +769,7 @@ Snippet.prototype.parseConfig = function(inString) {
               this.config.numberFormat.precisionMask = temp[1];
            }
          }
-         
+
          index = inString.indexOf("dateFormat=\"");
          if(index > -1) {
             temp = inString.substring(index + 12);
@@ -779,7 +780,7 @@ Snippet.prototype.parseConfig = function(inString) {
             }
             inString = inString.replace("dateFormat=" + temp, "\"");
          }
-         
+
          index = inString.indexOf("maxlen=");
          if(index > -1) {
             temp = inString.substring(index + 7);
