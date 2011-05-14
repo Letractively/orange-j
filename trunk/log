@@ -1,4 +1,5 @@
 TODO: (current priority)
+- Add leadingzeros modifier
 - Default html for object not exist?
 - Support '.' syntaxt for objects using {}
 - Switch
@@ -9,6 +10,10 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2011.05.13
+   * Added {numberFormat="000000.00"} number of zeros before and after decimal. Min for before, max/min after.
+2011.05.12
+   * Added {dateFormat='PHP style date formatting'}
 2011.05.01
    * Bugfix - uppercaseFirst now only modifies case of first letter (previously lowercased rest of string)
 2011.04.27
