@@ -10,6 +10,8 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2011.05.29
+   * Added -1 for recursion argument to 'inspect object'
 2011.05.14
    * Reduced number of alert error messages. Now throws Javascript errors.
 2011.05.13
