@@ -1341,7 +1341,7 @@ if(typeof(jQuery) == "function") {
 
                   if(inObject.constructor == Array) outString += pathToThis + " = []\n";
                   else outString += pathToThis + " = {}\n";
-                  if(inConfig.recurse >= inConfig.maxRecurse) return outString += pathToThis + " !! at max recurse !!\n"
+                  if(inConfig.recurse >= inConfig.maxRecurse && inConfig.maxRecurse != -1) return outString += pathToThis + " !! at max recurse !!\n"
                   for(var key in inObject) {
                      try {
                         if(inObject.hasOwnProperty(key) || inConfig.allProps) {
@@ -1399,7 +1399,7 @@ if(typeof(jQuery) == "function") {
                               if(inObject.constructor != Array)
                                  outString += key + ":";
                               if(propType == "object") {
-                                 if(inConfig.recurse < inConfig.maxRecurse) {
+                                 if(inConfig.recurse < inConfig.maxRecurse || inConfig.maxRecurse == -1) {
                                     inConfig.recurse++;
                                     outString += jQuery.oj.inspect(inObject[key], inConfig);
                                     inConfig.recurse--;
