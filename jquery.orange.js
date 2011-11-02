@@ -2,7 +2,7 @@
  * Projekt Orange - Orange-J -
  * Orange Extension for jQuery or Standalone
  * Bringing even more advanced coding laziness to the developer
- * Version 2.4
+ * Version 2.4.1 - beta
  * author: Donovan Walker
  */
 
@@ -364,9 +364,12 @@ Snippet.prototype.constructIf = function(inString) {
          default : //if tag is a value
             matchCloseIndex = working.indexOf("}");
             var snippetString = working.substring(0, matchCloseIndex + 1);
-            if(tag != "#if")
-               var snippet = new Snippet(snippetString, this.sLib, this);
-
+            if(tag != "#if") {
+                
+            //2.4.1
+               //var snippet = new Snippet(snippetString, this.sLib, this);
+var snippet = new Snippet(this.rework(tag, tagType, working, matchCloseIndex +1), this.sLib, this);
+            }
             //snippet.pre = working.substring(0, match.index);
             element.elements.push(snippet);
             working = working.substring(matchCloseIndex + 1);
@@ -430,7 +433,7 @@ Snippet.prototype.fill = function(obj) {
 
    switch (this.type) {
       case "value" :
-         obj = obj.toString();
+         obj = (obj != null)? obj.toString() : ''; //2.4.1
          if(this.config.striphtml) {
             obj = this.stripHTML(obj);
          }
@@ -562,13 +565,13 @@ Snippet.prototype.fill = function(obj) {
                   this.listPos = this.listInc + 1;
                   this.cycleInc++;
                }
-            } else {
-               return(out + this.inner);
+            } else { //assumed number/string/boolean - this does not currently support an element that is an array/list element that is actually a function
+               return(out + obj); //2.4.1 obj was 'this.inner'
             }
          } else {
             this.listLen = obj.length;
             for(var j = 0; j < obj.length; j++) {
-               if(!this.config.maxlen || this.config.maxlen < j) {
+               if(!this.config.maxlen || this.config.maxlen > j) { //swapped < for > fixes maxlen for arrays
                   this.arrayInc = this.listInc = j;
                   this.listPos = this.listInc + 1;
                   if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
@@ -598,33 +601,35 @@ Snippet.prototype.fill = function(obj) {
  * If the item is a list, is called within an outer loop that sets cycleName, cycleInc, etc
  */
 Snippet.prototype.fillSnippets = function(obj) {
-   var out = "";
-   var snippet = null;
-   for(var i = 0; i < this.elements.length; i++) {
-      snippet = this.elements[i];
-      if(typeof(snippet) == "string") { //static bit of html
-         out += snippet;
-      } else { //is a real snippet
-         if(this.cycleName && this.cycleName == snippet.tag) {
-            out += snippet.fill(this.cycleValues[this.cycleInc]);
-         } else {
-            switch(snippet.type) {
-               case "function" :
-               case "if" :
-               case "include" :
-                  out += snippet.fill(obj); //we do this because ifs & functions operate in the parent namespace
-                  break;
-               default :
-                  if(typeof obj[snippet.key] == "function") {
-                    out += snippet.fill(obj[snippet.key]());
-                  } else {
-                    out += snippet.fill(obj[snippet.key]);
-                  }
+  var out = "";
+  var snippet = null;
+  for(var i = 0; i < this.elements.length; i++) {
+    snippet = this.elements[i];
+    if(typeof(snippet) == "string") { //static bit of html
+      out += snippet;
+    } else { //is a real snippet
+      if(this.cycleName && this.cycleName == snippet.tag) {
+        out += snippet.fill(this.cycleValues[this.cycleInc]);
+      } else {
+        switch(snippet.type) {
+          case "function" :
+          case "if" :
+          case "include" :
+            out += snippet.fill(obj); //we do this because ifs & functions operate in the parent namespace
+            break;
+          default :
+            if(obj !== null) { //2.4.1 null check
+              if(typeof obj[snippet.key] == "function") {
+                out += snippet.fill(obj[snippet.key]());
+              } else {
+                out += snippet.fill(obj[snippet.key]);
+              }
             }
-         }
+        }
       }
-   }
-   return(out);
+    }
+  }
+  return(out);
 }
 
 
@@ -640,11 +645,11 @@ Snippet.prototype.getDefaultValue = function() {
 Snippet.prototype.getObjValue = function(inKey) {
    if(typeof(this.obj) != "undefined") {
       if(this.type == "array") { //we check here for array because the current array's "current" obj is actually an element of the 'list' that is obj.
-         if(this.obj.hasOwnProperty(this.arrayInc) && this.obj[this.arrayInc].hasOwnProperty(inKey)) {
+         if(this.obj.hasOwnProperty(this.arrayInc) && this.obj[this.arrayInc] !== null && this.obj[this.arrayInc].hasOwnProperty(inKey)) { //2.4.1 nullcheck
             return this.obj[this.arrayInc][inKey];
          }
       }
-      if(this.obj.hasOwnProperty(inKey)) {
+      if(this.obj != null && this.obj.hasOwnProperty(inKey)) {//2.4.1 nullcheck
          return(this.obj[inKey]);
       } else if(this.type == "array") {
          switch (inKey) {
@@ -1124,7 +1129,20 @@ if(typeof(jQuery) == "function") {
             }
          else {
             jQuery.oj.vars.slReady = false;
-            eval("jQuery.ajax({type:'GET', url:inSnippetURLs, success: function(snippet) { jQuery.oj.sl.add(snippet); if(typeof getSnippetCB == 'function') getSnippetCB()}, error: function(XMLHttpRequest, textStatus, errorThrown){ if(typeof getSnippetCB == 'function') getSnippetCB(false);  jQuery.log('error:' + textStatus + ' ' + errorThrown);}});");
+            jQuery.ajax({
+              type:'GET',
+              url:inSnippetURLs,
+              success: function(snippet) {
+                jQuery.oj.sl.add(snippet);
+                if(typeof getSnippetCB == 'function')
+                  getSnippetCB()
+              },
+              error: function(XMLHttpRequest, textStatus, errorThrown){
+                if(typeof getSnippetCB == 'function') {
+                  getSnippetCB(false);
+         }
+                jQuery.log('error:' + textStatus + ' ' + errorThrown);
+              }});
          }
       },
 
@@ -1192,42 +1210,17 @@ if(typeof(jQuery) == "function") {
       },
 
       //jQuery UTIL functions
-      log: function(e, titleInspectConfig, inspectConfig) {
+      log: function() {
          var config = {};
          if(typeof(console) != "undefined") {
             if(typeof(console.log) == "function") {
-               var logTitle = "\n";
-               var inspect = false;
-               var config = {};
-               switch(typeof inspectConfig) {
-                  case "object" :
-                     var inspect = true;
-                     config = inspectConfig;
-                     break;
-                  case "boolean" :
-                     inspect = true;
-                     break;
-
+              for(var i = 0; i < arguments.length; i++) {
+                console.log(arguments[i]);
                }
-               switch(typeof(titleInspectConfig)) {
-                  case "string" :
-                     logTitle = titleInspectConfig + "\n";
-                     break;
-                  case "boolean" :
-                     inspect = titleInspectConfig;
-                     break;
-                  case "object" :
-                     inspect = true;
-                     config = titleInspectConfig;
-               }
-               if(config.hasOwnProperty("title")) logTitle = config.title;
-               if(inspect) console.log(logTitle + jQuery.oj.inspect(e, config));
-               else console.log(logTitle + e );
-
-               return(true);
+               return true;
+             }
             }
-         }
-         return(false);
+            return false;
       },
 
       urlParam: function(param, inDefault) {
@@ -1567,27 +1560,7 @@ if(typeof(jQuery) == "function") {
 
    //BEGIN jQuery Methods (things that operate on the dom)
 
-   //jQuery POSITION Methods
-   jQuery.fn.centerElement = function(inConfig) {
-      var doWidth = true;var doHeight = true;
-      if(typeof inConfig == 'string') {
-         if(inConfig == "width")
-            doHeight = false;
-         else
-            doWidth = false;
-      }
-
-      var width = parseInt(this.css("width"));
-      var height = parseInt(this.css("height"));
-      var winHeight = jQuery(document).height();
-      var winWidth = jQuery(document).width();
-      //if(doHeight) this.css("top", Math.floor((winHeight - height) /2) + "px");
-      if(doWidth) this.css("left", Math.floor((winWidth - width) /2) + "px");
-      return(this);
-   }
-
-
-   //jQuery KEYLISTENER Methods
+      //jQuery KEYLISTENER Methods
    jQuery.fn.listen = function(inConfig) {
       /* if(this.selector.indexOf("#") == 0 && typeof(inConfig.htmlID) == "undefined") {
          inConfig.htmlID = this.selector.substring(1);
@@ -1737,48 +1710,48 @@ Date.replaceChars = {
 	longDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
 
 	// Day
-	d: function() { return (this.getDate() < 10 ? '0' : '') + this.getDate(); },
-	D: function() { return Date.replaceChars.shortDays[this.getDay()]; },
-	j: function() { return this.getDate(); },
-	l: function() { return Date.replaceChars.longDays[this.getDay()]; },
-	N: function() { return this.getDay() + 1; },
-	S: function() { return (this.getDate() % 10 == 1 && this.getDate() != 11 ? 'st' : (this.getDate() % 10 == 2 && this.getDate() != 12 ? 'nd' : (this.getDate() % 10 == 3 && this.getDate() != 13 ? 'rd' : 'th'))); },
-	w: function() { return this.getDay(); },
-	z: function() { var d = new Date(this.getFullYear(),0,1); return Math.ceil((this - d) / 86400000); }, // Fixed now
+	d: function() {return (this.getDate() < 10 ? '0' : '') + this.getDate();},
+	D: function() {return Date.replaceChars.shortDays[this.getDay()];},
+	j: function() {return this.getDate();},
+	l: function() {return Date.replaceChars.longDays[this.getDay()];},
+	N: function() {return this.getDay() + 1;},
+	S: function() {return (this.getDate() % 10 == 1 && this.getDate() != 11 ? 'st' : (this.getDate() % 10 == 2 && this.getDate() != 12 ? 'nd' : (this.getDate() % 10 == 3 && this.getDate() != 13 ? 'rd' : 'th')));},
+	w: function() {return this.getDay();},
+	z: function() {var d = new Date(this.getFullYear(),0,1);return Math.ceil((this - d) / 86400000);}, // Fixed now
 	// Week
-	W: function() { var d = new Date(this.getFullYear(), 0, 1); return Math.ceil((((this - d) / 86400000) + d.getDay() + 1) / 7); }, // Fixed now
+	W: function() {var d = new Date(this.getFullYear(), 0, 1);return Math.ceil((((this - d) / 86400000) + d.getDay() + 1) / 7);}, // Fixed now
 	// Month
-	F: function() { return Date.replaceChars.longMonths[this.getMonth()]; },
-	m: function() { return (this.getMonth() < 9 ? '0' : '') + (this.getMonth() + 1); },
-	M: function() { return Date.replaceChars.shortMonths[this.getMonth()]; },
-	n: function() { return this.getMonth() + 1; },
-	t: function() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 0).getDate() }, // Fixed now, gets #days of date
+	F: function() {return Date.replaceChars.longMonths[this.getMonth()];},
+	m: function() {return (this.getMonth() < 9 ? '0' : '') + (this.getMonth() + 1);},
+	M: function() {return Date.replaceChars.shortMonths[this.getMonth()];},
+	n: function() {return this.getMonth() + 1;},
+	t: function() {var d = new Date();return new Date(d.getFullYear(), d.getMonth(), 0).getDate()}, // Fixed now, gets #days of date
 	// Year
-	L: function() { var year = this.getFullYear(); return (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0)); },	// Fixed now
-	o: function() { var d  = new Date(this.valueOf());  d.setDate(d.getDate() - ((this.getDay() + 6) % 7) + 3); return d.getFullYear();}, //Fixed now
-	Y: function() { return this.getFullYear(); },
-	y: function() { return ('' + this.getFullYear()).substr(2); },
+	L: function() {var year = this.getFullYear();return (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0));},	// Fixed now
+	o: function() {var d  = new Date(this.valueOf());d.setDate(d.getDate() - ((this.getDay() + 6) % 7) + 3);return d.getFullYear();}, //Fixed now
+	Y: function() {return this.getFullYear();},
+	y: function() {return ('' + this.getFullYear()).substr(2);},
 	// Time
-	a: function() { return this.getHours() < 12 ? 'am' : 'pm'; },
-	A: function() { return this.getHours() < 12 ? 'AM' : 'PM'; },
-	B: function() { return Math.floor((((this.getUTCHours() + 1) % 24) + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1000 / 24); }, // Fixed now
-	g: function() { return this.getHours() % 12 || 12; },
-	G: function() { return this.getHours(); },
-	h: function() { return ((this.getHours() % 12 || 12) < 10 ? '0' : '') + (this.getHours() % 12 || 12); },
-	H: function() { return (this.getHours() < 10 ? '0' : '') + this.getHours(); },
-	i: function() { return (this.getMinutes() < 10 ? '0' : '') + this.getMinutes(); },
-	s: function() { return (this.getSeconds() < 10 ? '0' : '') + this.getSeconds(); },
-	u: function() { var m = this.getMilliseconds(); return (m < 10 ? '00' : (m < 100 ?
-'0' : '')) + m; },
+	a: function() {return this.getHours() < 12 ? 'am' : 'pm';},
+	A: function() {return this.getHours() < 12 ? 'AM' : 'PM';},
+	B: function() {return Math.floor((((this.getUTCHours() + 1) % 24) + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1000 / 24);}, // Fixed now
+	g: function() {return this.getHours() % 12 || 12;},
+	G: function() {return this.getHours();},
+	h: function() {return ((this.getHours() % 12 || 12) < 10 ? '0' : '') + (this.getHours() % 12 || 12);},
+	H: function() {return (this.getHours() < 10 ? '0' : '') + this.getHours();},
+	i: function() {return (this.getMinutes() < 10 ? '0' : '') + this.getMinutes();},
+	s: function() {return (this.getSeconds() < 10 ? '0' : '') + this.getSeconds();},
+	u: function() {var m = this.getMilliseconds();return (m < 10 ? '00' : (m < 100 ?
+'0' : '')) + m;},
 	// Timezone
-	e: function() { return "Not Yet Supported"; },
-	I: function() { return "Not Yet Supported"; },
-	O: function() { return (-this.getTimezoneOffset() < 0 ? '-' : '+') + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? '0' : '') + (Math.abs(this.getTimezoneOffset() / 60)) + '00'; },
-	P: function() { return (-this.getTimezoneOffset() < 0 ? '-' : '+') + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? '0' : '') + (Math.abs(this.getTimezoneOffset() / 60)) + ':00'; }, // Fixed now
-	T: function() { var m = this.getMonth(); this.setMonth(0); var result = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, '$1'); this.setMonth(m); return result;},
-	Z: function() { return -this.getTimezoneOffset() * 60; },
+	e: function() {return "Not Yet Supported";},
+	I: function() {return "Not Yet Supported";},
+	O: function() {return (-this.getTimezoneOffset() < 0 ? '-' : '+') + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? '0' : '') + (Math.abs(this.getTimezoneOffset() / 60)) + '00';},
+	P: function() {return (-this.getTimezoneOffset() < 0 ? '-' : '+') + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? '0' : '') + (Math.abs(this.getTimezoneOffset() / 60)) + ':00';}, // Fixed now
+	T: function() {var m = this.getMonth();this.setMonth(0);var result = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, '$1');this.setMonth(m);return result;},
+	Z: function() {return -this.getTimezoneOffset() * 60;},
 	// Full Date/Time
-	c: function() { return this.format("Y-m-d\\TH:i:sP"); }, // Fixed now
-	r: function() { return this.toString(); },
-	U: function() { return this.getTime() / 1000; }
+	c: function() {return this.format("Y-m-d\\TH:i:sP");}, // Fixed now
+	r: function() {return this.toString();},
+	U: function() {return this.getTime() / 1000;}
 };
