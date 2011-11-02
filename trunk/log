@@ -10,6 +10,17 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2011.11.01
+   * Bugfix - support for 'dot' syntax within #if statement block html - (in testing)
+2011.10
+   * Added Snippet support for null values (would crash snippet on render)
+   * Bugfix - maxlen now supported for lists
+   * Removed - centerElement jQuery function
+   * streamlined jQuery.log function. 
+      Now takes as many arguments as you like
+      outputs each as a console log statement
+      checks for console.log before attempting to call.
+      returns true or false based on presence of 'console' object
 2011.05.29
    * Added -1 for recursion argument to 'inspect object'
 2011.05.14
