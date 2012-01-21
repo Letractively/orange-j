@@ -1,5 +1,4 @@
 TODO: (current priority)
-- Add leadingzeros modifier
 - Default html for object not exist?
 - Support '.' syntaxt for objects using {}
 - Switch
@@ -10,6 +9,10 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2012.01.20
+   * Added 'deserialize' function to convert args in urls into an object
+   * Added 'deserialize' method to convert passed in string, window.location, href, or arbitrary attribute of matched element into JS Object (assuming passed in string is url)
+   * Added 'urlArg' function to pull argument from an arbitrary url. (Specs for this are in flux)
 2011.11.01
    * Bugfix - support for 'dot' syntax within #if statement block html - (in testing)
 2011.10
