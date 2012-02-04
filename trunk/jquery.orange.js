@@ -1135,7 +1135,7 @@ if(typeof(jQuery) == "function") {
        *  d:'hello'
        * }
        */
-      deserialize: function(inURL) {
+      urlParse: function(inURL) {
          var args, url = inURL.selector.split('?');
          url.args = {};
          if(url.length == 1) {
@@ -1161,6 +1161,7 @@ if(typeof(jQuery) == "function") {
          }
          return url.args;
       },
+      
 
 
       /**
@@ -1639,7 +1640,7 @@ if(typeof(jQuery) == "function") {
    }
 
 //BEGIN jQuery Methods (things that operate on the dom)
-jQuery.fn.deserialize = function(inAttr) {
+jQuery.fn.urlParse = function(inAttr) {
    var url = '';
    if($(this).length > 0) {
       if(typeof attr === 'undefined') {
@@ -1650,7 +1651,7 @@ jQuery.fn.deserialize = function(inAttr) {
      } else {
        url = this.selector.split('?');
      }
-     return jQuery.oj.deserialize(url);
+     return jQuery.oj.urlParse(url);
 }
 
 

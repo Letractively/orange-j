@@ -9,6 +9,8 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2012.02.03
+   * Updated changed 'deserialize' functions to 'urlParse'
 2012.01.20
    * Added 'deserialize' function to convert args in urls into an object
    * Added 'deserialize' method to convert passed in string, window.location, href, or arbitrary attribute of matched element into JS Object (assuming passed in string is url)
