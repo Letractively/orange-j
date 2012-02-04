@@ -1120,48 +1120,6 @@ if(typeof(jQuery) == "function") {
       addSnippet: function(inName, inStr) {
          jQuery.oj.sl.add(inName, inStr)
       },
-      
-      /**
-       * accepts a url string and de-serializes it. String does not need a 
-       * domain or '?', but arguments may not have '?' 
-       * array arguments are returned as arrays.
-       * ex:
-       * http://123.com?a=1&b=2&c[]=3&c[]=4&d=hello
-       * response
-       * {
-       *  a:'1',
-       *  b:'2',
-       *  c:['3','4'],
-       *  d:'hello'
-       * }
-       */
-      urlParse: function(inURL) {
-         var args, url = inURL.selector.split('?');
-         url.args = {};
-         if(url.length == 1) {
-            url.shift('');
-         }
-         url.argList = url[1].split("&");
-         for(var i in url.argList) if(url.argList.hasOwnProperty(i)) {
-            url.argList[i] = url.argList[i].split("=");
-            if(url.argList[i][0].substring(-2) === "[]") {
-               args = url.argList[i][0].substring(0, url.argList[i][0].length - 2);
-               if(!url.args.hasOwnProperty(args)) {
-                  url.args[args] = [];
-               }
-               if(url.argList[i].length > 1) {
-                  url.args[args].push(url.argList[i][1]);
-               }
-            } else {
-               url.args[url.argList[i][0]] = '';
-               if(url.argList[i].length > 1) {
-                  url.args[url.argList[i][0]] = url.argList[i][1];
-               }       
-            }
-         }
-         return url.args;
-      },
-      
 
 
       /**
@@ -1264,7 +1222,6 @@ if(typeof(jQuery) == "function") {
 
    //jQuery UTIL functions
    log: function() {
-      var config = {};
       if(typeof(console) != "undefined") {
          if(typeof(console.log) == "function") {
             for(var i = 0; i < arguments.length; i++) {
@@ -1277,48 +1234,62 @@ if(typeof(jQuery) == "function") {
    },
 
    urlParam: function(param, inDefault) {
-      var location, regsex, result, results;
-      if(param.indexOf('[]') > 0) {
-         param = param.replace("[]", '\\[\\]');
-         regex = '[?&]' + param + '=([^&#]*)';
-         location = window.location.href;
-         results = [];
-         while(result = (new RegExp(regex)).exec(location)) {
-            results.push(result[1]);
-            location = location.substring(result.index + result[0].length);
-         }
-         if(results.length > 0) return results;
-      } else {
-         regex = '[?&]' + param + '=([^&#]*)';
-         result = (new RegExp(regex)).exec(window.location.href);
-         if(result) return result[1];
-      }
-      if(typeof inDefault != "undefined") return inDefault;
-      return false;
+      return this.urlArg(window.location.href, param, inDefault);
    },
    
    urlArg: function(url, param, inDefault) {
-      var regex, result, results;
-      if(url == null) {
-        url = window.location.href;
-      }
-      if(param.indexOf('[]') > 0) {
-        param = param.replace("[]", '\\[\\]');
-        regex = '[?&]' + param + '=([^&#]*)';
-        results = [];
-        while(result = (new RegExp(regex)).exec(url)) {
-          results.push(result[1]);
-          url = url.substring(result.index + result[0].length);
-        }
-        if(results.length > 0) return results;
-      } else {
-        regex = '[?&]' + param + '=([^&#]*)';
-        result = (new RegExp(regex)).exec(url);
-        if(result) return result[1];
-      }
+      url = jQuery.oj.urlParse(url);
+      if(url.hasOwnProperty(param)) return url[param];
       if(typeof inDefault != "undefined") return inDefault;
       return false;
     },
+    
+          
+      /**
+       * accepts a url string and de-serializes it. String does not need a 
+       * domain or '?', but arguments may not have '?' 
+       * array arguments are returned as arrays.
+       * ex:
+       * http://123.com?a=1&b=2&c[]=3&c[]=4&d=hello
+       * response
+       * {
+       *  a:'1',
+       *  b:'2',
+       *  c:['3','4'],
+       *  d:'hello'
+       * }
+       */
+      urlParse : function(inURL) {
+         var args, url = inURL.split('?');
+         url.args = {};         
+         if(url.length == 1) {
+            url.shift('');
+         }
+         
+         if(url[1].indexOf("#") > -1) {
+            url.args['#'] = url[1].substring(url[1].indexOf("#") + 1);
+            url[1] = url[1].slice(0, url[1].indexOf("#"));
+         }         
+         url.argList = url[1].split("&");
+         for(var i in url.argList) if(url.argList.hasOwnProperty(i)) {
+            url.argList[i] = url.argList[i].split("=");
+            if(url.argList[i][0].indexOf("[]") == url.argList[i][0].length - 2 ) {
+               args = url.argList[i][0].substring(0, url.argList[i][0].length - 2);
+               if(!url.args.hasOwnProperty(args)) {
+                  url.args[args] = [];
+               }
+               if(url.argList[i].length > 1) {
+                  url.args[args].push(url.argList[i][1]);
+               }
+            } else {
+               url.args[url.argList[i][0]] = '';
+               if(url.argList[i].length > 1) {
+                  url.args[url.argList[i][0]] = url.argList[i][1];
+               }       
+            }
+         }
+         return url.args;
+      },
 
 
    //WARNING: RECURSIVE OBJECTS WILL RECURSE INFINITELY!!!!
@@ -1641,15 +1612,15 @@ if(typeof(jQuery) == "function") {
 
 //BEGIN jQuery Methods (things that operate on the dom)
 jQuery.fn.urlParse = function(inAttr) {
-   var url = '';
+   var url = window.location.href;
    if($(this).length > 0) {
       if(typeof attr === 'undefined') {
          url = $(this).attr("href");
       } else {
          url = $(this).attr(inAttr);
       }
-     } else {
-       url = this.selector.split('?');
+     } else if(typeof this.selector == "string" && this.selector.length > 0) {
+      url = this.selector;
      }
      return jQuery.oj.urlParse(url);
 }
