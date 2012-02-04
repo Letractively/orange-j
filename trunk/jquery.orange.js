@@ -2,7 +2,7 @@
  * Projekt Orange - Orange-J -
  * Orange Extension for jQuery or Standalone
  * Bringing even more advanced coding laziness to the developer
- * Version 2.4.2 - alpha
+ * Version 2.4.2 - beta
  * author: Donovan Walker
  */
 
