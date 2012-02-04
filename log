@@ -12,6 +12,7 @@ TODO: (current priority)
 2012.02.04
    * Consolidated urlArg and urlParse functionality. about 30 lines of code removed
    * fixed array parsing bug in urlParse.
+   * updated name to beta. feature freeze.
 2012.02.03
    * Updated changed 'deserialize' function & method to 'urlParse'
 2012.01.20
