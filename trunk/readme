@@ -1,26 +1,24 @@
 Projekt Orange - Orange-J -
-Orange Extension for jQuery or Standalone
+Orange Extension for jQuery
 Bringing even more advanced coding laziness to the developer
-Version 2.4
+Version 2.4.2 beta
 author:Donovan Walker
 donovan.walker+orangej@gmail.com
 
 You may use this code and modify it freely so long as you maintain original credit at the top.
 thanks!
 -  There are 3 sizes of Orange-J in each download. Uncompressed, minified, and packed. All compression was done at 
-   http://jscompress.com/
--  *forks* the 'snippet' version of Orange-J doesn't have event listener code.
--  ** toy ** An alpha verison label manager is included in the file jquery.orange.lablemanager.js
-   Takes labels as an array, as objects, caches (or not) and does ajax queries for data if you like.
-   There are no docs as yet, and some features may be buggy. It is not included in the 'main' orange-j javascript files.
+   http://www.refresh-sf.com/yui/
 -  HTML Snippet Engine (Snippet + JSON = HTML) Put it in the DOM or get a string back. Ideal for server JSON callbacks
 -  Easy Event handling (for really complex event behaviors)
--  Debugging utilities
+-  Utilities
+      urlArg - get an argument value from any url
+      urlParse - get all arguments in a url as a js object.
       Javascript Object Inspector (See ALL of a javascript object at runtime with a single call)
-      Log (Is your site in beta? Logs to the firebug console if it exists, doesn't crash if not. Optional JOI output)
+      Log (Is your site in beta? Logs to the firebug console if it exists, doesn't crash if not.)
 -  Form Data (Javascript Object->Form Fields, Form Fields->Javascript Object) for convenience, you know?
 
-**SNIPPETS**
+***SNIPPETS***
 METHOD REFERENCE
 $("#snippetContainerElement").addSnippet("snippetName") <- adds the html contained within 'snippetContainerElement' as snippet 'snippetName'
 
@@ -29,7 +27,7 @@ $("#elementID").snippetAppend("snippetName", data)
 $("#elementID").snippetPrepend("snippetName", data)
 $("#elementID").snippetString(snippetString, data) <- (the actual snippet, properly formatted data object)
 
-FUNCTION REFERENCE
+FUNCTION REFERENCE (all can be called directly off '$' or off '$.oj'. The examples show the longer path name)
 $.oj.setSnippetLib(inSnippetHash) <- (inSnippetHash:a js Object where each named attribute is a snippet)
 										sets the snippets for this library.  Good if you have a lot of snippets and want to keep them handy
 $.oj.snippetString(snippetString, data) <- (the actual snippet, properly formatted data object)
@@ -44,7 +42,7 @@ $.oj.getSnippets(inURLHash, callback(hashKey, success)) <- (   inURLHash:a js Ob
                                  your_tpl:"/js_snippets/u_snippet.html"});
             $("#target").snippet("my_tpl", data);
 
-**VALIDATION** - with regular expressions
+***VALIDATION*** - with regular expressions
 METHOD REFERENCE
 $("#elementID").validate(inReName) <-	tests the matched form element (must be form element) against a regular expression in the library
 	inRe = the name of the regular expression
@@ -61,17 +59,22 @@ $.oj.validate(inReName, inRegex) <- Adds a regular expression to the library, or
       inReName = the name of the regular expression already in the library
       inRegex  = the string to test against the regular expression
 
-**FORM DATA**
+***FORM DATA***
 FUNCTION REFERENCE
 $.oj.ofd(inElementIDArray, inPrefix) <- Creates a Javascript Object from html form elements with the
 $.oj.fillForm(inObj, inPrefix) <- Fills a set of form elements with attributes of a Javascript object
 
+***URL DATA***
+METHOD REFERENCE
+$("#cssexpression" or "someurl").urlArg()
+FUNCTION REFERENCE
+
 
 **EVENT HANDLING**
-METHOD REFERENCE //only avaiable in the full version of orange-j!
+METHOD REFERENCE 
 $("#elementID").listen(inConfig)
 
-**DEBUGGING & UTILITIES**
+***UTILITIES***
 FUNCTION REFERENCE
 $.oj.inspect(inObj, inConfig)
 $.oj.log(inObj, inConfig, inspect)

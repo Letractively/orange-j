@@ -9,6 +9,9 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2012.02.05
+   * minor namespace cleanup
+   * added implicit functionality to urlArg (returns complete object on absence of Argument Name)
 2012.02.04
    * Consolidated urlArg and urlParse functionality. about 30 lines of code removed
    * fixed array parsing bug in urlParse.
