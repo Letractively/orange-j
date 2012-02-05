@@ -9,6 +9,9 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2012.02.05 - 1
+   * removed functions: clone, inspect, serialize, serializeObj (name for serialize when attached to jQuery)
+      These functions, or similar, are incorporated into jQuery core.
 2012.02.05
    * minor namespace cleanup
    * added implicit functionality to urlArg (returns complete object on absence of Argument Name)
