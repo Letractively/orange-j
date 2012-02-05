@@ -1149,39 +1149,39 @@ if(typeof(jQuery) == "function") {
                   jQuery.log('error:' + textStatus + ' ' + errorThrown);
                }
             });
-      }
-   },
-
-
-   //END jQuery SNIPPET Functions
-
-   //takes an object and returns a numerically indexed list
-   attrList: function(inObj, inConfig) {
-      var retList = [];
-      for(var i in inObj) {
-         if(inObj.hasOwnProperty(i)) {
-            retList.push(i);
          }
-      }
-      delete i;
-      return(retList);
-   },
+      },
 
 
-   //jQuery FORM Functions
-   fillForm: function(inObj, inPrefix, inSuffix) {
-      var prefix = (typeof(inPrefix) != "undefined")? inPrefix : "";
-      var suffix = (typeof(inSuffix) != "undefined")? inSuffix : "";
+      //END jQuery SNIPPET Functions
 
-      for(var i in inObj) {
-         if(inObj.hasOwnProperty(i)) {
-            jQuery("#" + prefix + i + suffix).val(inObj[i]);
+      //takes an object and returns a numerically indexed list
+      attrList: function(inObj, inConfig) {
+         var retList = [];
+         for(var i in inObj) {
+            if(inObj.hasOwnProperty(i)) {
+               retList.push(i);
+            }
          }
-      }
-      delete i, prefix;
-   },
+         delete i;
+         return(retList);
+      },
 
-   /**
+
+      //jQuery FORM Functions
+      fillForm: function(inObj, inPrefix, inSuffix) {
+         var prefix = (typeof(inPrefix) != "undefined")? inPrefix : "";
+         var suffix = (typeof(inSuffix) != "undefined")? inSuffix : "";
+
+         for(var i in inObj) {
+            if(inObj.hasOwnProperty(i)) {
+               jQuery("#" + prefix + i + suffix).val(inObj[i]);
+            }
+         }
+         delete i, prefix;
+      },
+
+      /**
        *  inDOMPrefix/config
        *  {
        *    domPrefix:'',
@@ -1189,60 +1189,74 @@ if(typeof(jQuery) == "function") {
        *    stripPrefix:(true)/false
        *    stripSuffix:(true)/false
        */
-   objFromDom: function(inFormIDList, inDOMPrefix, inDOMSuffix) {
-      var config = {
-         DOMPrefix:'', 
-         DOMSuffix:'', 
-         stripPrefix:true, 
-         stripSuffix:true
-      };
+      objFromDom: function(inFormIDList, inDOMPrefix, inDOMSuffix) {
+         var config = {
+            DOMPrefix:'', 
+            DOMSuffix:'', 
+            stripPrefix:true, 
+            stripSuffix:true
+         };
 
-      if(typeof inDOMPrefix == "object") {
-         jQuery.extend(config, inDOMPrefix);
-      } else {
-         if(typeof inDOMPrefix == "string") config.DOMPrefix = inDOMPrefix;
-         if(typeof inDOMSuffix == "string") config.DOMSuffix = inDOMSuffix;
-      }
-
-      //make this handle the object innput for 'inDOMPRefix'
-      var obj = {};
-      config.stripPrefix = (config.stripPrefix)? '' : config.DOMPrefix;
-      config.stripSuffix = (config.stripSuffix)? '' : config.DOMSuffix;
-
-      for(var i in inFormIDList) if(inFormIDList.hasOwnProperty(i)) {
-         obj[config.stripPrefix + inFormIDList[i] + config.stripSuffix] = jQuery("#" + config.DOMPrefix + inFormIDList[i] + config.DOMSuffix).val();
-      }
-      return(obj);
-   },
-
-
-   ofd: function(inFormIDList, inDOMPrefix, inDOMSuffix) {
-      return(jQuery.oj.objFromDom(inFormIDList, inDOMPrefix, inDOMSuffix));
-   },
-
-   //jQuery UTIL functions
-   log: function() {
-      if(typeof(console) != "undefined") {
-         if(typeof(console.log) == "function") {
-            for(var i = 0; i < arguments.length; i++) {
-               console.log(arguments[i]);
-            }
-            return true;
+         if(typeof inDOMPrefix == "object") {
+            jQuery.extend(config, inDOMPrefix);
+         } else {
+            if(typeof inDOMPrefix == "string") config.DOMPrefix = inDOMPrefix;
+            if(typeof inDOMSuffix == "string") config.DOMSuffix = inDOMSuffix;
          }
-      }
-      return false;
-   },
 
-   urlParam: function(param, inDefault) {
-      return this.urlArg(window.location.href, param, inDefault);
-   },
-   
-   urlArg: function(url, param, inDefault) {
-      url = jQuery.oj.urlParse(url);
-      if(url.hasOwnProperty(param)) return url[param];
-      if(typeof inDefault != "undefined") return inDefault;
-      return false;
-    },
+         //make this handle the object innput for 'inDOMPRefix'
+         var obj = {};
+         config.stripPrefix = (config.stripPrefix)? '' : config.DOMPrefix;
+         config.stripSuffix = (config.stripSuffix)? '' : config.DOMSuffix;
+
+         for(var i in inFormIDList) if(inFormIDList.hasOwnProperty(i)) {
+            obj[config.stripPrefix + inFormIDList[i] + config.stripSuffix] = jQuery("#" + config.DOMPrefix + inFormIDList[i] + config.DOMSuffix).val();
+         }
+         return(obj);
+      },
+
+
+      ofd: function(inFormIDList, inDOMPrefix, inDOMSuffix) {
+         return(jQuery.oj.objFromDom(inFormIDList, inDOMPrefix, inDOMSuffix));
+      },
+
+      //jQuery UTIL functions
+      log: function() {
+         if(typeof(console) != "undefined") {
+            if(typeof(console.log) == "function") {
+               for(var i = 0; i < arguments.length; i++) {
+                  console.log(arguments[i]);
+               }
+               return true;
+            }
+         }
+         return false;
+      },
+
+      urlParam: function(param, inDefault) {
+         return this.urlArg(window.location.href, param, inDefault);
+      },
+      
+      /**
+       * Returns (in order of preference) 
+       * 1. the requested url parameter's value
+       * 2. inDefault
+       * 3. false
+       * 
+       * url         - required -   url from which to extract the value
+       * param       - optional -   the name of the parameter 
+       *                            If param is not passed, returns a JS Object
+       *                            representation of all the parameters in the url
+       * inDefault   = optional -   default value if the parameter is not found
+       *                            If in default is not passed and 'param' is
+       */
+      urlArg: function(url, param, inDefault) {
+         url = jQuery.oj.urlParse(url);
+         if(typeof param == "undefined") return url;
+         if(url.hasOwnProperty(param)) return url[param];
+         if(typeof inDefault != "undefined") return inDefault;
+         return false;
+      },
     
           
       /**
@@ -1292,30 +1306,18 @@ if(typeof(jQuery) == "function") {
       },
 
 
-   //WARNING: RECURSIVE OBJECTS WILL RECURSE INFINITELY!!!!
-   clone: function(inObj, root) {
-      if(typeof(root) == "undefined") {
-         //var cleanCloneList = true;
-         jQuery.oj.vars.cloneList = [];
-      }
-      if(typeof (inObj) == "undefined") {
-         return(inObj);
-      }
-      if(inObj.constructor == Array) {
-         var retObj = [];
-         for (var i = 0; i < inObj.length; i++) {
-            if (typeof inObj[i] == 'object') {
-               retObj[i] = new jQuery.oj.clone(inObj[i], true);
-            }
-            else {
-               retObj[i] = inObj[i];
-            }
+      //WARNING: RECURSIVE OBJECTS WILL RECURSE INFINITELY!!!!
+      clone: function(inObj, root) {
+         if(typeof(root) == "undefined") {
+            //var cleanCloneList = true;
+            jQuery.oj.vars.cloneList = [];
          }
-      }
-      else {
-         var retObj = {};
-         for (var i in inObj) {
-            if(inObj.hasOwnProperty(i)) {
+         if(typeof (inObj) == "undefined") {
+            return(inObj);
+         }
+         if(inObj.constructor == Array) {
+            var retObj = [];
+            for (var i = 0; i < inObj.length; i++) {
                if (typeof inObj[i] == 'object') {
                   retObj[i] = new jQuery.oj.clone(inObj[i], true);
                }
@@ -1324,153 +1326,165 @@ if(typeof(jQuery) == "function") {
                }
             }
          }
-      }
-      return(retObj);
-   },
+         else {
+            var retObj = {};
+            for (var i in inObj) {
+               if(inObj.hasOwnProperty(i)) {
+                  if (typeof inObj[i] == 'object') {
+                     retObj[i] = new jQuery.oj.clone(inObj[i], true);
+                  }
+                  else {
+                     retObj[i] = inObj[i];
+                  }
+               }
+            }
+         }
+         return(retObj);
+      },
 
-   /**
+      /**
       * inConfig - optional - options:	string	pathToThis  root label for the object returned. I'd suggest the variable name of the object you're passing in
       *					int	maxRecurse (circular objects could recurse infinitely) level 0 will give you the  object's value, but no attributes. Defaults to 5.
       *					bool	allProps (defaults to has own property),
       *					bool	toJSON (converts the object to JSON string - experimental! -)
       *
       */
-   inspect: function(inObject, inConfig) {
-      var outString = "";
-      var indent = "";
+      inspect: function(inObject, inConfig) {
+         var outString = "";
+         var indent = "";
 
-      if(typeof(inConfig) == "undefined") inConfig = {};
+         if(typeof(inConfig) == "undefined") inConfig = {};
 
-      if(!inConfig.hasOwnProperty("recurse"))  inConfig.recurse = 0;
-      if(!inConfig.hasOwnProperty("maxRecurse")) inConfig.maxRecurse = 5;
-      if(!inConfig.hasOwnProperty("allProps")) inConfig.allProps = false;
-      if(!inConfig.hasOwnProperty("toJSON")) inConfig.toJSON = false;
-      if(!inConfig.hasOwnProperty("inspectedHash")) inConfig.inspectedHash = {};
-      if(!inConfig.hasOwnProperty("indent")) inConfig.indent = "";
-      if(!inConfig.hasOwnProperty("indentChars")) inConfig.indentChars = false;
-      if(!inConfig.hasOwnProperty("pathToThis")) inConfig.pathToThis = "";
+         if(!inConfig.hasOwnProperty("recurse"))  inConfig.recurse = 0;
+         if(!inConfig.hasOwnProperty("maxRecurse")) inConfig.maxRecurse = 5;
+         if(!inConfig.hasOwnProperty("allProps")) inConfig.allProps = false;
+         if(!inConfig.hasOwnProperty("toJSON")) inConfig.toJSON = false;
+         if(!inConfig.hasOwnProperty("inspectedHash")) inConfig.inspectedHash = {};
+         if(!inConfig.hasOwnProperty("indent")) inConfig.indent = "";
+         if(!inConfig.hasOwnProperty("indentChars")) inConfig.indentChars = false;
+         if(!inConfig.hasOwnProperty("pathToThis")) inConfig.pathToThis = "";
 
-      var inObjType = typeof(inObject);
-      if(!inConfig.toJSON) {
-         switch(inObjType) {
-            case "string":
-               return inConfig.pathToThis + " = \"" + inObject + "\"\n";
-               break;
-            case "boolean":
-               return inConfig.pathToThis + " = bool(" + inObject + ")\n";
-               break;
-            case "number":
-               return inConfig.pathToThis + " = " + inObject + "\n";
-               break;
-            case "undefined":
-               return inConfig.pathToThis + " = undefined\n";
-               break;
-            case "object":
-               if(inObject == null) return inConfig.pathToThis + " = null\n";
+         var inObjType = typeof(inObject);
+         if(!inConfig.toJSON) {
+            switch(inObjType) {
+               case "string":
+                  return inConfig.pathToThis + " = \"" + inObject + "\"\n";
+                  break;
+               case "boolean":
+                  return inConfig.pathToThis + " = bool(" + inObject + ")\n";
+                  break;
+               case "number":
+                  return inConfig.pathToThis + " = " + inObject + "\n";
+                  break;
+               case "undefined":
+                  return inConfig.pathToThis + " = undefined\n";
+                  break;
+               case "object":
+                  if(inObject == null) return inConfig.pathToThis + " = null\n";
 
-               for(var m in inConfig.inspectedHash) if(inConfig.inspectedHash.hasOwnProperty(m)) {
-                  if(inObject == inConfig.inspectedHash[m]) {
-                     if(inConfig.indentChars) {
-                        return inConfig.pathToThis + " == - already inspected -\n";
+                  for(var m in inConfig.inspectedHash) if(inConfig.inspectedHash.hasOwnProperty(m)) {
+                     if(inObject == inConfig.inspectedHash[m]) {
+                        if(inConfig.indentChars) {
+                           return inConfig.pathToThis + " == - already inspected -\n";
+                        }
+                        return inConfig.pathToThis + " == " + m +"\n";
                      }
-                     return inConfig.pathToThis + " == " + m +"\n";
                   }
-               }
-               inConfig.inspectedHash[inConfig.pathToThis] = inObject;
+                  inConfig.inspectedHash[inConfig.pathToThis] = inObject;
 
-               var pathToThis = inConfig.pathToThis;
+                  var pathToThis = inConfig.pathToThis;
 
-               if(inObject.constructor == Array) outString += pathToThis + " = []\n";
-               else outString += pathToThis + " = {}\n";
-               if(inConfig.recurse >= inConfig.maxRecurse && inConfig.maxRecurse != -1) return outString += pathToThis + " !! at max recurse !!\n"
-               for(var key in inObject) {
-                  try {
-                     if(inObject.hasOwnProperty(key) || inConfig.allProps) {
-                        if(inObject.constructor == Array) inConfig.pathToThis = pathToThis + "[" + key + "]";
-                        else inConfig.pathToThis = pathToThis + "." + key;
-                        inConfig.recurse++;
-                        outString += "" + jQuery.inspect(inObject[key], inConfig);
-                        inConfig.recurse--;
-                     }
-                  } catch (e) {
-                     return (outString + " ERROR inspecting!: " + e.message);
-                  }
-               }
-
-               break;
-            default :
-               outString += inConfig.pathToThis + " = " + inObject.toString() + "\n";
-         }
-      } else { //if inConfig.toJSON
-         switch(inObjType) {
-            case "string":
-               var regEx = /("|\\)/;
-               var transStr = "";
-               while(inObject.indexOf("\\") > -1) {
-                  transStr += inObject.substring(0, inObject.indexOf("\"")) + "\\\\";
-                  inObject = inObject.substring(inObject.indexOf("\\") + 1);
-               }
-               transStr += inObject;
-               inObject = transStr;
-               transStr = "";
-               while(inObject.indexOf("\"") > -1) {
-                  transStr += inObject.substring(0, inObject.indexOf("\"")) + "\\\"";
-                  inObject = inObject.substring(inObject.indexOf("\"") + 1);
-               }
-               transStr += inObject;
-               outString += "\"" + transStr + "\"";
-               break;
-            case "boolean":
-               outString += inObject;
-               break;
-            case "number":
-               outString += inObject;
-               break;
-            case "undefined":
-               outString += "undefined";
-               break;
-            case "object":
-               if(inObject.constructor == Array) outString += "[";
-               else outString +="{";
-               for(var key in inObject) {
-                  if(key != "parent") {
+                  if(inObject.constructor == Array) outString += pathToThis + " = []\n";
+                  else outString += pathToThis + " = {}\n";
+                  if(inConfig.recurse >= inConfig.maxRecurse && inConfig.maxRecurse != -1) return outString += pathToThis + " !! at max recurse !!\n"
+                  for(var key in inObject) {
                      try {
                         if(inObject.hasOwnProperty(key) || inConfig.allProps) {
-                           var propType = typeof(inObject[key]);
-                           if(inObject.constructor != Array)
-                              outString += key + ":";
-                           if(propType == "object") {
-                              if(inConfig.recurse < inConfig.maxRecurse || inConfig.maxRecurse == -1) {
-                                 inConfig.recurse++;
-                                 outString += jQuery.oj.inspect(inObject[key], inConfig);
-                                 inConfig.recurse--;
-                              } else {
-                                 if(inObject[key] == null) outString += "null";
-                                 else if(inObject[key].constructor == "Array") outString += "[]";
-                                 else outString += "{}";
-                              }
-                           } else {
-                              outString += jQuery.oj.inspect(inObject[key], inConfig);
-                           }
-                           outString += ",";
+                           if(inObject.constructor == Array) inConfig.pathToThis = pathToThis + "[" + key + "]";
+                           else inConfig.pathToThis = pathToThis + "." + key;
+                           inConfig.recurse++;
+                           outString += "" + jQuery.inspect(inObject[key], inConfig);
+                           inConfig.recurse--;
                         }
                      } catch (e) {
                         return (outString + " ERROR inspecting!: " + e.message);
                      }
                   }
-               }
-               if(inObject.constructor == Array) outString += "]";
-               else outString += "}";
-               break;
-            default :
-               outString += inObject.toString();
+
+                  break;
+               default :
+                  outString += inConfig.pathToThis + " = " + inObject.toString() + "\n";
+            }
+         } else { //if inConfig.toJSON
+            switch(inObjType) {
+               case "string":
+                  var regEx = /("|\\)/;
+                  var transStr = "";
+                  while(inObject.indexOf("\\") > -1) {
+                     transStr += inObject.substring(0, inObject.indexOf("\"")) + "\\\\";
+                     inObject = inObject.substring(inObject.indexOf("\\") + 1);
+                  }
+                  transStr += inObject;
+                  inObject = transStr;
+                  transStr = "";
+                  while(inObject.indexOf("\"") > -1) {
+                     transStr += inObject.substring(0, inObject.indexOf("\"")) + "\\\"";
+                     inObject = inObject.substring(inObject.indexOf("\"") + 1);
+                  }
+                  transStr += inObject;
+                  outString += "\"" + transStr + "\"";
+                  break;
+               case "boolean":
+                  outString += inObject;
+                  break;
+               case "number":
+                  outString += inObject;
+                  break;
+               case "undefined":
+                  outString += "undefined";
+                  break;
+               case "object":
+                  if(inObject.constructor == Array) outString += "[";
+                  else outString +="{";
+                  for(var key in inObject) {
+                     if(key != "parent") {
+                        try {
+                           if(inObject.hasOwnProperty(key) || inConfig.allProps) {
+                              var propType = typeof(inObject[key]);
+                              if(inObject.constructor != Array)
+                                 outString += key + ":";
+                              if(propType == "object") {
+                                 if(inConfig.recurse < inConfig.maxRecurse || inConfig.maxRecurse == -1) {
+                                    inConfig.recurse++;
+                                    outString += jQuery.oj.inspect(inObject[key], inConfig);
+                                    inConfig.recurse--;
+                                 } else {
+                                    if(inObject[key] == null) outString += "null";
+                                    else if(inObject[key].constructor == "Array") outString += "[]";
+                                    else outString += "{}";
+                                 }
+                              } else {
+                                 outString += jQuery.oj.inspect(inObject[key], inConfig);
+                              }
+                              outString += ",";
+                           }
+                        } catch (e) {
+                           return (outString + " ERROR inspecting!: " + e.message);
+                        }
+                     }
+                  }
+                  if(inObject.constructor == Array) outString += "]";
+                  else outString += "}";
+                  break;
+               default :
+                  outString += inObject.toString();
+            }
          }
-      }
 
-      return(outString);
-   },
+         return(outString);
+      },
 
-   /**
+      /**
        * Counts the total number of properties for a given object
        *
        *
@@ -1478,63 +1492,63 @@ if(typeof(jQuery) == "function") {
        * @param inConfig -optional-
        * @return int|array
        */
-   len: function(inObj, inConfig) {
-      var config = jQuery.extend({
-         all:false,
-         getArray:false,
-         filterOut:["function"]
-      }, inConfig);
-      var ret = [];
+      len: function(inObj, inConfig) {
+         var config = jQuery.extend({
+            all:false,
+            getArray:false,
+            filterOut:["function"]
+         }, inConfig);
+         var ret = [];
 
-      var j, i, elType, count;
-      for(i in inObj) if(config.all || inObj.hasOwnProperty(i)) {
-         elType = typeof inObj[i];
-         count = true;
-         for(j = 0; j < config.filterOut.length; j++) {
-            if(elType == config.filterOut[j]) {
-               count = false;
-               break;
+         var j, i, elType, count;
+         for(i in inObj) if(config.all || inObj.hasOwnProperty(i)) {
+            elType = typeof inObj[i];
+            count = true;
+            for(j = 0; j < config.filterOut.length; j++) {
+               if(elType == config.filterOut[j]) {
+                  count = false;
+                  break;
+               }
+            }
+            if(count) {
+               ret.push(inObj[i]);
             }
          }
-         if(count) {
-            ret.push(inObj[i]);
-         }
-      }
-      if(config.getArray) return ret;
-      return ret.length;
+         if(config.getArray) return ret;
+         return ret.length;
 
-   },
+      },
 
-   /**
+      /**
        * creates a response object {ok:<boolean>, data:<data>,message:<string>}
        * all arguments optional. Defaults are {ok:true,data:'',message:''}.
        * can pass only 'data' argument ro(<data>).
        */
-   ro: function(ok, data, message) {
-      var resp = {
-         ok:true,
-         data:'',
-         message:''
-      };
-      if(typeof message == 'string') {
-         resp.message = message;
-      }
-      if(typeof data != 'undefined') {
-         resp.data = data;
-      }
-      switch(typeof ok) {
-         case 'undefined' :
-            return resp;
-         case 'boolean' :
-            resp.ok = ok;
-            return resp;
-         default : //is some data
-            resp.data = ok;
-            return resp;
-      }
-   },
+      ro: function(ok, data, message) {
+         var resp = {
+            ok:true,
+            data:'',
+            message:''
+         };
+         if(typeof message == 'string') {
+            resp.message = message;
+         }
+         if(typeof data != 'undefined') {
+            resp.data = data;
+         }
+         switch(typeof ok) {
+            case 'undefined' :
+               return resp;
+            case 'boolean' :
+               resp.ok = ok;
+               return resp;
+            default : //is some data
+               resp.data = ok;
+               return resp;
+         }
+      },
 
-   /****
+      /****
          * Serializes a javscript object with named attributes. Attribute names will be utilized in the url.  NOTE strings and numbers supported only!
          * @param object inObject			- required -
          * @param string inAddPrefix 		- optional - prefix the names in the returned url with this
@@ -1542,49 +1556,47 @@ if(typeof(jQuery) == "function") {
          * @param boolean inFilterPositive 	- optional - is the filter positive (allowing only those attributes that exist in the filter to be included)
          *													or negative (any attribute that is in the filter will be excluded)
          */
-   serialize: function(inObject, inAddPrefix, inFilter, inFilterPositive) {
-      var urlString = "";
-      var prefix = "";
-      if(typeof(inAddPrefix) != "undefined") {
-         prefix = inAddPrefix;
-      }
-      if(typeof(inFilter) == "undefined") {
-         for(i in inObject) {
-            if(inObject.hasOwnProperty(i))
-               urlString += "&" + prefix + i + "=" + inObject[i];
+      serialize: function(inObject, inAddPrefix, inFilter, inFilterPositive) {
+         var i, prefix = "", urlString = "";
+         if(typeof(inAddPrefix) != "undefined") {
+            prefix = inAddPrefix;
          }
-      } else if (typeof(inFilterPositive) == "boolean" && !inFilterPositive) {
-         for(i in inObject) {
-            if(inObject.hasOwnProperty(i))
-               if(!inFilter.hasOwnProperty(i))
+         if(typeof(inFilter) == "undefined") {
+            for(i in inObject) {
+               if(inObject.hasOwnProperty(i))
                   urlString += "&" + prefix + i + "=" + inObject[i];
+            }
+         } else if (typeof(inFilterPositive) == "boolean" && !inFilterPositive) {
+            for(i in inObject) {
+               if(inObject.hasOwnProperty(i))
+                  if(!inFilter.hasOwnProperty(i))
+                     urlString += "&" + prefix + i + "=" + inObject[i];
+            }
+         } else {
+            for(i in inObject) {
+               if(inObject.hasOwnProperty(i))
+                  if(inFilter.hasOwnProperty(i))
+                     urlString += "&" + prefix + i + "=" + inObject[i];
+            }
          }
-      } else {
-         for(i in inObject) {
-            if(inObject.hasOwnProperty(i))
-               if(inFilter.hasOwnProperty(i))
-                  urlString += "&" + prefix + i + "=" + inObject[i];
-         }
-      }
-      return(urlString);
-   },
+         return(urlString);
+      },
 
 
-   /****
+      /****
          * Serialize a javascript object into a url list representation
          * @param object inList			- required - the object/list to be serialized
          * @param string inListName 		- required - the name to be used for the serialized list
          */
-   serializeList: function(inList, inListName) {
-      var urlString = "";
-      for(i in inList) {
-         if(inList.hasOwnProperty(i))
-            urlString += "&" + inListName + "[]=" + inList.i;
-      }
-      return(urlString);
-   },
-   //jQuery VALIDATE Functions
-   /**
+      serializeList: function(inList, inListName) {
+         var i, urlString = "";
+         for(i in inList) if(inList.hasOwnProperty(i)) {
+               urlString += "&" + inListName + "[]=" + inList[i];
+         }
+         return(urlString);
+      },
+      //jQuery VALIDATE Functions
+      /**
           * Adds a regular expression to the library, or tests a string on a regular expression already assigned to the library
           *
           * Add a regular expression
@@ -1597,153 +1609,161 @@ if(typeof(jQuery) == "function") {
           *
           * returns boolean
           */
-   validate: function(inReName, inRegex) {
-      if(typeof(inRegex) == "string") {
-         if(jQuery.oj.vars.regex.hasOwnProperty(inReName))
-            return(jQuery.oj.vars.regex[inReName].test(inRegex));
+      validate: function(inReName, inRegex) {
+         if(typeof(inRegex) == "string") {
+            if(jQuery.oj.vars.regex.hasOwnProperty(inReName))
+               return(jQuery.oj.vars.regex[inReName].test(inRegex));
+         }
+         if(typeof(inRegex) != "undefined" && inRegex.constructor == RegExp) {
+            jQuery.oj.vars.regex[inReName] = inRegex;
+            return(true);
+         }
+         return(false);
       }
-      if(typeof(inRegex) != "undefined" && inRegex.constructor == RegExp) {
-         jQuery.oj.vars.regex[inReName] = inRegex;
-         return(true);
-      }
-      return(false);
    }
+   /*
+    * candidate for 2.4.3 - short-term for urlParse().attrName
+   jQuery.fn.urlArg = function(param, inDefault) {
+      url = jQuery.oj.urlParse(url);
+      if(url.hasOwnProperty(param)) return url[param];
+      if(typeof inDefault != "undefined") return inDefault;
+      return false;
+   }*/
+
+   //BEGIN jQuery Methods (things that operate on the dom)
+   jQuery.fn.urlParse = function(inAttr) {
+      var url = window.location.href;
+      if($(this).length > 0) {
+         if(typeof attr === 'undefined') {
+            url = $(this).attr("href");
+         } else {
+            url = $(this).attr(inAttr);
+         }
+      } else if(typeof this.selector == "string" && this.selector.length > 0) {
+         url = this.selector;
+      }
+      return jQuery.oj.urlParse(url);
    }
 
-//BEGIN jQuery Methods (things that operate on the dom)
-jQuery.fn.urlParse = function(inAttr) {
-   var url = window.location.href;
-   if($(this).length > 0) {
-      if(typeof attr === 'undefined') {
-         url = $(this).attr("href");
-      } else {
-         url = $(this).attr(inAttr);
-      }
-     } else if(typeof this.selector == "string" && this.selector.length > 0) {
-      url = this.selector;
-     }
-     return jQuery.oj.urlParse(url);
-}
 
-
-//jQuery KEYLISTENER Methods
-jQuery.fn.listen = function(inConfig) {
-   /* if(this.selector.indexOf("#") == 0 && typeof(inConfig.htmlID) == "undefined") {
+   //jQuery KEYLISTENER Methods
+   jQuery.fn.listen = function(inConfig) {
+      /* if(this.selector.indexOf("#") == 0 && typeof(inConfig.htmlID) == "undefined") {
          inConfig.htmlID = this.selector.substring(1);
       } */
-   if(!inConfig.hasOwnProperty("element")) {
-      inConfig.element = this;
-   }
-   var keyListener = new KeyListener(inConfig);
+      if(!inConfig.hasOwnProperty("element")) {
+         inConfig.element = this;
+      }
+      var keyListener = new KeyListener(inConfig);
 
-   switch(inConfig.keystroke) {
-      case "keydown" :
-         this.keydown( function(e) {
-            keyListener.processKey(e);
-         });
-         break;
-      case "keyup" :
-         this.keyup( function(e) {
-            keyListener.processKey(e);
-         });
-         break;
-      case "keypress" :
-      default :
-         this.keypress( function(e) {
-            //keyListener.element = this;
-            keyListener.processKey(e);
-         });
+      switch(inConfig.keystroke) {
+         case "keydown" :
+            this.keydown( function(e) {
+               keyListener.processKey(e);
+            });
+            break;
+         case "keyup" :
+            this.keyup( function(e) {
+               keyListener.processKey(e);
+            });
+            break;
+         case "keypress" :
+         default :
+            this.keypress( function(e) {
+               //keyListener.element = this;
+               keyListener.processKey(e);
+            });
+      }
+      return(this);
    }
-   return(this);
-}
 
-//jQuery VALIDATE Methods
-/**
+   //jQuery VALIDATE Methods
+   /**
        * tests the matched element against a regular expression in the library
        * inRe = the name of the regular expression
        *
        *  returns mixed - false on fail, the value of the element on success
        */
-jQuery.fn.validate = function(inRe) {
-   if(typeof(inRe) == "string") {
-      if(jQuery.oj.vars.regex.hasOwnProperty(inRe)) {
-         if(jQuery.oj.vars.regex[inRe].test(this.val())) {
-            return(this.val());
+   jQuery.fn.validate = function(inRe) {
+      if(typeof(inRe) == "string") {
+         if(jQuery.oj.vars.regex.hasOwnProperty(inRe)) {
+            if(jQuery.oj.vars.regex[inRe].test(this.val())) {
+               return(this.val());
+            }
          }
+         return(false);
       }
       return(false);
    }
-   return(false);
-}
 
-//jQuery SNIPPET Methods
-jQuery.fn.addSnippet= function(inName) {
-   this.each(function(i, item) {
-      if(typeof inName == "string")
-         jQuery.oj.sl.add(inName, item.innerHTML);
-      else
-         jQuery.oj.sl.add(item.innerHTML);
-   });
-   return(this);
-}
-
-jQuery.fn.snippet = function(inTPName, inElementHash) {
-   var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
-   this.each(function(i, item) {
-      if(item.tagName.toLowerCase() == "input" || item.tagName.toLowerCase() == "textarea") item.value = snippet;
-      else item.innerHTML = snippet;
+   //jQuery SNIPPET Methods
+   jQuery.fn.addSnippet= function(inName) {
+      this.each(function(i, item) {
+         if(typeof inName == "string")
+            jQuery.oj.sl.add(inName, item.innerHTML);
+         else
+            jQuery.oj.sl.add(item.innerHTML);
+      });
+      return(this);
    }
-   );
-   return(this);
-}
 
-
-jQuery.fn.snippetAfter = function(inTPName, inElementHash) {
-   var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
-   this.after(snippet);
-   return(this);
-}
-
-
-jQuery.fn.snippetAppend = function(inTPName, inElementHash) {
-   var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
-   this.append(snippet);
-   return(this);
-};
-
-jQuery.fn.snippetBefore = function(inTPName, inElementHash) {
-   var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
-   this.before(snippet);
-   return(this);
-}
-
-jQuery.fn.snippetPrepend = function(inTPName, inElementHash) {
-   var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
-   this.prepend(snippet);
-   return(this);
-};
-
-jQuery.fn.snippetString = function(inSnippetString, inElementHash) {
-   this.html(jQuery.oj.sl.fillString(inSnippetString, inElementHash));
-   return(this);
-};
-
-
-//enable depricated functionality
-for(var ojfunc in jQuery.oj) if(jQuery.oj.hasOwnProperty(ojfunc) && typeof(jQuery.oj[ojfunc]) == 'function') {
-   if(jQuery.hasOwnProperty(ojfunc) && (ojfunc != 'serialize')) {
-      jQuery.oj.log("jQuery already has function: " + ojfunc);
-   } else {
-      switch (ojfunc) {
-         case 'serialize' :
-            jQuery.serializeObj = jQuery.oj[ojfunc];
-            break;
-         default :
-            jQuery[ojfunc] = jQuery.oj[ojfunc];
+   jQuery.fn.snippet = function(inTPName, inElementHash) {
+      var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
+      this.each(function(i, item) {
+         if(item.tagName.toLowerCase() == "input" || item.tagName.toLowerCase() == "textarea") item.value = snippet;
+         else item.innerHTML = snippet;
       }
-
+      );
+      return(this);
    }
-}
+
+
+   jQuery.fn.snippetAfter = function(inTPName, inElementHash) {
+      var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
+      this.after(snippet);
+      return(this);
+   }
+
+
+   jQuery.fn.snippetAppend = function(inTPName, inElementHash) {
+      var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
+      this.append(snippet);
+      return(this);
+   };
+
+   jQuery.fn.snippetBefore = function(inTPName, inElementHash) {
+      var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
+      this.before(snippet);
+      return(this);
+   }
+
+   jQuery.fn.snippetPrepend = function(inTPName, inElementHash) {
+      var snippet = jQuery.oj.sl.fill(inTPName, inElementHash);
+      this.prepend(snippet);
+      return(this);
+   };
+
+   jQuery.fn.snippetString = function(inSnippetString, inElementHash) {
+      this.html(jQuery.oj.sl.fillString(inSnippetString, inElementHash));
+      return(this);
+   };
+
+
+   //enable depricated functionality
+   for(var ojfunc in jQuery.oj) if(jQuery.oj.hasOwnProperty(ojfunc) && typeof(jQuery.oj[ojfunc]) == 'function') {
+      if(jQuery.hasOwnProperty(ojfunc) && (ojfunc != 'serialize')) {
+         jQuery.oj.log("jQuery already has function: " + ojfunc);
+      } else {
+         switch (ojfunc) {
+            case 'serialize' :
+               jQuery.serializeObj = jQuery.oj[ojfunc];
+               break;
+            default :
+               jQuery[ojfunc] = jQuery.oj[ojfunc];
+         }
+
+      }
+   }
 
 } else {
    sl = new SnippetLib();
@@ -1822,7 +1842,7 @@ Date.replaceChars = {
    t: function() {
       var d = new Date();
       return new Date(d.getFullYear(), d.getMonth(), 0).getDate()
-      }, // Fixed now, gets #days of date
+   }, // Fixed now, gets #days of date
    // Year
    L: function() {
       var year = this.getFullYear();
