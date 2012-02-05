@@ -76,11 +76,7 @@ $("#elementID").listen(inConfig)
 
 ***UTILITIES***
 FUNCTION REFERENCE
-$.oj.inspect(inObj, inConfig)
 $.oj.log(inObj, inConfig, inspect)
 $.oj.attrList(inObj) <- retrieves a list of attribute names for the passed in object (prototype attributes not included)
 $.oj.urlParam(inParamName, inDefault)
-$.oj.clone(inObj) //this method is very similar to calling $.oj.extend(true, {}, inObjToBeCopied); but is kept for legacy compatibility
 $.oj.len(inObj, inConfig)
-$.oj.serializeObj(inObject, inAddPrefix, inFilter, inFilterPositive)
-$.oj.serializeList(inList, inListName)
