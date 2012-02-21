@@ -2,7 +2,7 @@
  * Projekt Orange - Orange-J -
  * Orange Extension for jQuery
  * Bringing even more advanced coding laziness to the developer
- * Version 2.4.2 - beta
+ * Version 2.4.3 - beta
  * author: Donovan Walker
  */
 
@@ -110,9 +110,9 @@ function Snippet(inString, inLib, inParent) {
    this.elements       = []; //placed here for easier display in $.log when debugging
 
    //this.snippets 	= new Array();
-   if(typeof(inParent) == "object" && inParent.isSnippet)
+   if(typeof inParent == "object" && inParent.isSnippet)
       this.parent = inParent;
-   if(typeof(inLib) == "object" && inLib.isSnippetLib)
+   if(typeof inLib == "object" && inLib.isSnippetLib)
       this.sLib = inLib;
 
    //find my tag (always at the beginning of instring)
@@ -140,7 +140,22 @@ function Snippet(inString, inLib, inParent) {
             inString = inString.substring(inString.indexOf("}") + 1);
       }
    }
-
+   //assign the fill function
+   if(this.type == "value") {
+      this.fillFunc = this.fillVal;
+   } else if(this.type == "if") {
+      this.fillFunc = this.fillIf;
+   } else if(this.type == "elseif") {
+      this.fillFunc = this.fillElseIf;
+   } else if(this.type == "object") {
+      this.fillFunc = this.fillObj;
+   } else if(this.type == "array") {
+      this.fillFunc = this.fillArray;
+   } else if(this.type == "function") {
+      this.fillFunc = this.fillFunc;
+   } else if(this.type == "include") {
+      this.fillFunc = this.fillIncl;
+   }
    //get the data element key  (to fill the snippet)
 
    //if this is an object, array, or root snippet (an object) look through the 'inString' for child-snippets
@@ -391,138 +406,188 @@ Snippet.prototype.tagOpenCloseBrace = /(^|[^\\])}/;  //not yet used
 * assumes tag has tag delimiters and any attributes removed
 */
 Snippet.prototype.tagType = function(inTag) {
-   var ret = "";
    if(inTag.substring((inTag.length - 2)) == "[]") {
-      ret += "array";
-   }
-   else if(inTag.substring((inTag.length - 2)) == "{}") {
-      ret += "object";
+      return "array";
+   } else if(inTag.substring((inTag.length - 2)) == "{}") {
+      return "object";
    } else if(inTag.substring((inTag.length - 2)) == "()") {
-      ret += "function";
+      return "function";
    } else if(inTag == "#func") {
-      ret += "function";
+      return "function";
    } else if(inTag == "#template") {
-      ret += "template";
+      return "template";
    } else if(inTag == "#if") {
-      ret += "if";
+      return "if";
    } else if(inTag == "#elseif") {
-      ret += "elseif";
+      return "elseif";
    } else if(inTag == "#else") {
-      ret += "else";
+      return "else";
    } else if(inTag == "#include") {
-      ret += "include";
+      return "include";
    } else if(inTag == "#func") {
-      ret += "func";
+      return "func";
    } else if(inTag == "#lit")  {
-      ret += "literal";
-   } else {
-      ret += "value";
+      return "literal";
+   } 
+   return "value";
+}
+
+
+Snippet.prototype.fillVal = function(obj) {
+   //obj = (obj != null)? obj.toString() : ''; //2.4.1
+   obj = obj.toString();
+   for(var i = 0; i < this.transforms.length; i++) {
+     obj = this.transforms[i].call(this, obj);
    }
-   return ret;
+   return obj;
+}
+
+
+Snippet.prototype.fillIncl = function(obj) {
+   if(!this.sLib) {
+      throw "Snippet Error: cannot use include when not using SnippetLib";
+      return("");
+   }
+   return this.sLib.fill(this.includeSnippet, obj, {
+      parent:this
+   });
+}
+
+
+Snippet.prototype.fillFunc = function(obj) {
+   var myVal = this.myFunction.call(this.parent, obj);
+   if(this.tag == "#func" && typeof(myVal) != "undefined") {
+      return myVal.toString();
+   }
+   if(typeof(myVal) == "undefined" || myVal === false) return "";
+   if(typeof(myVal) == "string" || typeof(myVal) == "number") return(myVal);
+   return this.fillSnippets(obj);
+}
+
+
+Snippet.prototype.fillIf = function(obj) {
+   var i, myVal, out = '';
+   for(var i = 0; i < this.elements.length; i++) {
+      myVal = this.elements[i].fill(obj);
+      if(typeof myVal == "string") {
+         return myVal;
+         /*out += myVal;
+         i = this.elements.length;*/
+      }
+   }   
+   //return out;
+   return '';
+}
+
+
+Snippet.prototype.fillElseIf = function(obj) {
+   if(!this.myFunction.call(this.parent, obj)) return false;
+   return this.fillSnippets(obj)
+}
+
+
+Snippet.prototype.fillObj = function(obj) {
+   var objType = typeof obj;
+   if(this.tag == "root{}") {
+      //return this.fillSnippets(obj);
+      if(objType == "number" || objType == "string")
+         return this.fillSnippets({
+            "val":obj
+         });
+      else if(objType == "object" && !(obj instanceof Array))
+         return this.fillSnippets(obj);
+   } else {
+      return this.fillSnippets(obj);
+   }
+}
+
+Snippet.prototype.fillArray = function(obj) {
+   var i, j, out = '';
+   this.cycleInc = this.arrayInc = this.listInc = 0;
+   this.listPos = 1;
+   if(!(obj instanceof Array)) {
+      if(typeof(obj) == "object") {
+         this.listLen = 0;
+         for(i in obj) if(obj.hasOwnProperty(i)) { this.listLen++;} 
+         for(j in obj) if(obj.hasOwnProperty(j)) {
+            this.arrayInc = j;
+            if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
+            if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
+               out += this.fillSnippets({
+                  "val":obj[j]
+               });
+            } else {
+               out += this.fillSnippets(obj[j]);
+            }
+            this.listInc++;
+            this.listPos = this.listInc + 1;
+            this.cycleInc++;
+         }
+      } else { //assumed number/string/boolean - this does not currently support an element that is an array/list element that is actually a function
+         return(out + obj); //2.4.1 obj was 'this.inner'
+      }
+   } else {
+      this.listLen = obj.length;
+      for(var j = 0; j < obj.length; j++) {
+         if(!this.config.maxlen || this.config.maxlen > j) { //swapped < for > fixes maxlen for arrays
+            this.arrayInc = this.listInc = j;
+            this.listPos = this.listInc + 1;
+            if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
+            if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
+               out += this.fillSnippets({
+                  "val":obj[j]
+               });
+            } else {
+               out += this.fillSnippets(obj[j]);
+            }
+            this.cycleInc++;
+         } else {
+            out += this.config.maxend;
+            j = obj.length;
+         }
+      }
+   }
 }
 
 
 Snippet.prototype.fill = function(obj) {
-   var out = "";
-   var myVal = "";
-   var objType = typeof obj;
+   //var  i, out = "",
+   //     myVal = "",
+        //objType = typeof obj;
 
    this.obj = obj;
-   if(objType == "undefined" || obj == null) {
+   if(typeof obj == "undefined" || obj == null) {
       obj = this.getDefaultValue();
-      objType = typeof obj;
+      //objType = typeof obj;
    }
-
+   var out = this.fillFunc(obj);
+   this.obj = null;
+   delete(this.obj);
+   return(out);
    switch (this.type) {
-      case "value" :
+      /*case "value" :
          obj = (obj != null)? obj.toString() : ''; //2.4.1
-         if(this.config.striphtml) {
-            obj = this.stripHTML(obj);
+         for(i = 0; i < this.transforms.length; i++) {
+           obj = this.transforms[i].call(this, obj);
          }
-
-         if(this.config.maxlen && (obj.length > this.config.maxlen)) {
-            if(this.config.maxwords) {
-               var whiteIndex = obj.substring(0, (this.config.chopTo) + 1).lastIndexOf(" ");
-               var nbspIndex = obj.substring(0, this.config.chopTo + 6).lastIndexOf("&nbsp;");
-               if(whiteIndex == this.config.chopTo - 1 || nbspIndex == this.config.chopTo - 1) {
-                  obj = obj.substring(0, this.config.chopTo);
-               } else {
-                  if(whiteIndex > nbspIndex && whiteIndex > 0) {
-                     obj = obj.substring(0, whiteIndex);
-                  }
-                  else if(nbspIndex > 0) {
-                     obj = obj.substring(0, nbspIndex);
-                  }
-                  else {
-                     obj = obj.substring(0, this.config.chopTo);
-                  }
-               }
-            } else {
-               obj = obj.substring(0, this.config.chopTo);
-            }
-            /*we perform the htmlentities check and append 'maxend' AFTER because we don't want the maxend string to be transformed (there may be html in it)*/
-            obj = (this.config.htmlentities)? this.htmlentities(obj) + this.config.maxend:obj + this.config.maxend;
-         } else if(this.config.htmlentities) {
-            obj = this.htmlentities(obj);
-         }
-         if(this.config.numberFormat) {
-            obj = obj.toString().split('.');
-            if(obj[0].charAt(0) == '-') {
-               out = '-';
-               obj[0] = obj[0].substring(1);
-            }
-            out += this.config.numberFormat.intMask.substring(0, (this.config.numberFormat.intMask.length - obj[0].length)) + obj[0];
-            if(this.config.numberFormat.precisionMask) {
-               if(obj.hasOwnProperty(1)) {
-                  out += '.' + (obj[1].substring(0, this.config.numberFormat.precisionMask.length) + this.config.numberFormat.precisionMask).substring(0, this.config.numberFormat.precisionMask.length);
-               } else {
-                  out += '.' + this.config.numberFormat.precisionMask;
-               }
-            }
-            obj = out;
-         }
-
-         if(this.config.dateFormat) {
-            if(! isNaN (obj-0)) {
-               this.dateConverter.setTime(obj);
-            } else {
-               this.dateConverter.setTime(Date.parse(obj));
-            }
-            obj = this.dateConverter.format(this.config.dateFormat);
-         }
-
-         if(typeof this.config.caseConvert == 'string') {
-            switch(this.config.caseConvert) {
-               case 'uppercase' :
-                  obj = obj.toUpperCase();
-                  break;
-               case 'lowercase' :
-                  obj = obj.toLowerCase()
-                  break;
-               case 'uppercaseFirst' :
-                  obj = obj.substr(0,1).toUpperCase() + obj.substring(1);
-                  break;
-            }
-         }
-         if(this.config.collapsewhite) obj = this.collapseWhite(obj);
-         return obj;
-      case "include" :
+         return obj;*/
+      /*case "include" :
          if(!this.sLib) {
             throw "Snippet Error: cannot use include when not using SnippetLib";
             return("");
          }
          return this.sLib.fill(this.includeSnippet, obj, {
             parent:this
-         });
-      case "function" :
+         }); */
+      /*case "function" :
          myVal = this.myFunction.call(this.parent, obj);
          if(this.tag == "#func" && typeof(myVal) != "undefined") {
             return myVal.toString();
          }
          if(typeof(myVal) == "undefined" || myVal === false) return "";
          if(typeof(myVal) == "string" || typeof(myVal) == "number") return(myVal);
-         return this.fillSnippets(obj);
-      case "if" : //we don't have a comparison call here because the elements store 'elseifs' and the root 'if' is an elseif that's in 1st position'
+         return this.fillSnippets(obj); */
+      /*case "if" : //we don't have a comparison call here because the elements store 'elseifs' and the root 'if' is an elseif that's in 1st position'
          for(var i = 0; i < this.elements.length; i++) {
             myVal = this.elements[i].fill(obj);
             if(typeof myVal == "string") {
@@ -530,11 +595,12 @@ Snippet.prototype.fill = function(obj) {
                i = this.elements.length;
             }
          }
-         break;
-      case "elseif" :
+         break;*/
+      /*case "elseif" :
          if(!this.myFunction.call(this.parent, obj)) return false;
          return this.fillSnippets(obj)
-      case "object" :
+      */
+      /*case "object" :
          if(this.tag == "root{}") {
             //return this.fillSnippets(obj);
             if(objType == "number" || objType == "string")
@@ -545,8 +611,8 @@ Snippet.prototype.fill = function(obj) {
                return this.fillSnippets(obj);
          } else {
             return this.fillSnippets(obj);
-         }
-      case "array" :
+         } */
+      /*case "array" :
          //if(typeof(obj.length) == "undefined") { // old way assumed something MIGHT be numerically indexable if length exists... NOPE
          this.cycleInc = this.arrayInc = this.listInc = 0;
          this.listPos = 1;
@@ -590,13 +656,14 @@ Snippet.prototype.fill = function(obj) {
                   j = obj.length;
                }
             }
-         }
+         }*/
    }
    //}
    this.obj = null;
    delete(this.obj);
    return(out);
 }
+
 
 /**
  * Fills the child snippets of this snippet
@@ -675,37 +742,8 @@ Snippet.prototype.getObjValue = function(inKey) {
    }
    return("");
 }
-/*
-Snippet.prototype.getObjValue = function(inKey) {
-   if(typeof(this.obj) != "undefined") {
-      if(this.obj.hasOwnProperty(inKey)) {
-         return(this.obj[inKey]);
-      } else if(this.type == "array" && (inKey == "arrayInc" || inKey == "listInc")) {
-         return this.arrayInc;
-      }
-      return this.parentValue(inKey);
-   }
-   if(typeof this.parent != "undefined") { //I seem to remember deleting this if a while back. It may produce unexpected results in some situations.
-      return this.parentValue(inKey);
-   }
-   return("");
-}
-*/
 
-/* fancy. We'll use it only if  we need it.
-Snippet.prototype.htmlentities = function (inHTML){
-    //by Micox - elmicoxcodes.blogspot.com - www.ievolutionweb.com
-    var i,charCode,html='';
-    for(i=0;i < inHTML.length;i++){
-        charCode = inHTML[i].charCodeAt(0);
-        if( (charCode > 47 && charCode < 58) || (charCode > 62 && charCode < 127) ){
-            html += inHTML[i];
-        }else{
-            html += "&#" + charCode + ";";
-        }
-    }
-    return html;
-} */
+
 Snippet.prototype.htmlentities = function (inHTML) {
    return inHTML.
    replace(/&/gmi, '&amp;').
@@ -860,6 +898,82 @@ Snippet.prototype.parseConfig = function(inString) {
 
 Snippet.prototype.stripHTML = function (inHTML) {
    return inHTML.replace(/(<([^>]+)>)/ig,"");
+}
+
+
+Snippet.prototype.transMaxEntities = function(obj) {
+  if(this.config.maxlen && (obj.length > this.config.maxlen)) {
+    if(this.config.maxwords) {
+      var whiteIndex = obj.substring(0, (this.config.chopTo) + 1).lastIndexOf(" ");
+      var nbspIndex = obj.substring(0, this.config.chopTo + 6).lastIndexOf("&nbsp;");
+      if(whiteIndex == this.config.chopTo - 1 || nbspIndex == this.config.chopTo - 1) {
+        obj = obj.substring(0, this.config.chopTo);
+      } else {
+        if(whiteIndex > nbspIndex && whiteIndex > 0) {
+          obj = obj.substring(0, whiteIndex);
+        }
+        else if(nbspIndex > 0) {
+          obj = obj.substring(0, nbspIndex);
+        }
+        else {
+          obj = obj.substring(0, this.config.chopTo);
+        }
+      }
+    } else {
+      obj = obj.substring(0, this.config.chopTo);
+    }
+    /*we perform the htmlentities check and append 'maxend' AFTER because we don't want the maxend string to be transformed (there may be html in it)*/
+    obj = (this.config.htmlentities)? this.htmlentities(obj) + this.config.maxend:obj + this.config.maxend;
+  } else if(this.config.htmlentities) {
+    obj = this.htmlentities(obj);
+  }
+  return obj;
+}
+
+Snippet.prototype.transNumberFormat = function(obj) {
+  var out;
+    obj = obj.split('.');
+    if(obj[0].charAt(0) == '-') {
+      out = '-';
+      obj[0] = obj[0].substring(1);
+    }
+    out += this.config.numberFormat.intMask.substring(0, (this.config.numberFormat.intMask.length - obj[0].length)) + obj[0];
+    if(this.config.numberFormat.precisionMask) {
+      if(obj.hasOwnProperty(1)) {
+        out += '.' + (obj[1].substring(0, this.config.numberFormat.precisionMask.length) + this.config.numberFormat.precisionMask).substring(0, this.config.numberFormat.precisionMask.length);
+      } else {
+        out += '.' + this.config.numberFormat.precisionMask;
+      }
+    }
+    obj = out;
+  return obj;
+}
+
+Snippet.prototype.transDateFormat = function(obj) {
+  if(this.config.dateFormat) {
+    if(! isNaN (obj-0)) {
+      this.dateConverter.setTime(obj);
+    } else {
+      this.dateConverter.setTime(Date.parse(obj));
+    }
+    obj = this.dateConverter.format(this.config.dateFormat);
+   }
+  return obj;
+}
+
+Snippet.prototype.transCase = function(obj) {
+  switch(this.config.caseConvert) {
+    case 'uppercase' :
+      obj = obj.toUpperCase();
+      break;
+    case 'lowercase' :
+      obj = obj.toLowerCase()
+      break;
+    case 'uppercaseFirst' :
+      obj = obj.substr(0,1).toUpperCase() + obj.substring(1);
+      break;
+  }
+  return obj;
 }
 
 /**
