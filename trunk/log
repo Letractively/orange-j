@@ -9,6 +9,14 @@ TODO: (current priority)
                 {#case "1"}
                 {#case > 2}
         {/switch}
+2012.02.21 - 1
+   * Fixed it! (TODO from last is taken care of)
+   * Faster (slightly)!
+2012.02.21 
+   * Broken Submit!
+   * First push for 2.4.3
+   * Main focus of this release is on performance/unit-testing
+   * TODO: Text formatting functions need to be added to transform queue
 2012.02.05 - 1
    * removed functions: clone, inspect, serialize, serializeObj (name for serialize when attached to jQuery)
       These functions, or similar, are incorporated into jQuery core.

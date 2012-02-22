@@ -108,6 +108,7 @@ function Snippet(inString, inLib, inParent) {
    this.tag            = null;     //full tag
    this.type           = "";
    this.elements       = []; //placed here for easier display in $.log when debugging
+   this.transforms     = [];
 
    //this.snippets 	= new Array();
    if(typeof inParent == "object" && inParent.isSnippet)
@@ -145,14 +146,14 @@ function Snippet(inString, inLib, inParent) {
       this.fillFunc = this.fillVal;
    } else if(this.type == "if") {
       this.fillFunc = this.fillIf;
-   } else if(this.type == "elseif") {
+   }else if(this.type == "elseif") {
       this.fillFunc = this.fillElseIf;
    } else if(this.type == "object") {
       this.fillFunc = this.fillObj;
    } else if(this.type == "array") {
       this.fillFunc = this.fillArray;
    } else if(this.type == "function") {
-      this.fillFunc = this.fillFunc;
+      this.fillFunc = this.fillFunction;
    } else if(this.type == "include") {
       this.fillFunc = this.fillIncl;
    }
@@ -243,7 +244,7 @@ Snippet.prototype.getCloseTag = function(inTag) {
       } else {
          closeTag = "{/" + key + "}";
       }
-   } else {
+   }else {
       tagSuffix = inTag.substring(inTag.length - 2);
       key 	= inTag.substring(0, inTag.length - 2);
 
@@ -434,8 +435,17 @@ Snippet.prototype.tagType = function(inTag) {
 
 
 Snippet.prototype.fillVal = function(obj) {
-   //obj = (obj != null)? obj.toString() : ''; //2.4.1
-   obj = obj.toString();
+   if(obj != null) {
+      if(obj.toString) {
+         obj = obj.toString();
+      } else {
+         obj = obj + '';
+      }
+   } else {
+      obj = '';
+   }
+   //obj = (obj != null)? if(obj.toString) : ''; //2.4.1
+   //obj = obj.toString();
    for(var i = 0; i < this.transforms.length; i++) {
      obj = this.transforms[i].call(this, obj);
    }
@@ -454,7 +464,7 @@ Snippet.prototype.fillIncl = function(obj) {
 }
 
 
-Snippet.prototype.fillFunc = function(obj) {
+Snippet.prototype.fillFunction = function(obj) {
    var myVal = this.myFunction.call(this.parent, obj);
    if(this.tag == "#func" && typeof(myVal) != "undefined") {
       return myVal.toString();
@@ -496,7 +506,7 @@ Snippet.prototype.fillObj = function(obj) {
          });
       else if(objType == "object" && !(obj instanceof Array))
          return this.fillSnippets(obj);
-   } else {
+   }else {
       return this.fillSnippets(obj);
    }
 }
@@ -506,9 +516,9 @@ Snippet.prototype.fillArray = function(obj) {
    this.cycleInc = this.arrayInc = this.listInc = 0;
    this.listPos = 1;
    if(!(obj instanceof Array)) {
-      if(typeof(obj) == "object") {
+      if(typeof obj == "object" || typeof obj == "function") {
          this.listLen = 0;
-         for(i in obj) if(obj.hasOwnProperty(i)) { this.listLen++;} 
+         for(i in obj) if(obj.hasOwnProperty(i)) {this.listLen++;} 
          for(j in obj) if(obj.hasOwnProperty(j)) {
             this.arrayInc = j;
             if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
@@ -547,6 +557,7 @@ Snippet.prototype.fillArray = function(obj) {
          }
       }
    }
+   return out;
 }
 
 
@@ -558,12 +569,14 @@ Snippet.prototype.fill = function(obj) {
    this.obj = obj;
    if(typeof obj == "undefined" || obj == null) {
       obj = this.getDefaultValue();
+      return(obj);
       //objType = typeof obj;
    }
    var out = this.fillFunc(obj);
    this.obj = null;
    delete(this.obj);
    return(out);
+   /*
    switch (this.type) {
       /*case "value" :
          obj = (obj != null)? obj.toString() : ''; //2.4.1
@@ -656,12 +669,13 @@ Snippet.prototype.fill = function(obj) {
                   j = obj.length;
                }
             }
-         }*/
+         }
    }
    //}
    this.obj = null;
    delete(this.obj);
    return(out);
+       */
 }
 
 
@@ -705,7 +719,7 @@ Snippet.prototype.fillSnippets = function(obj) {
 Snippet.prototype.getDefaultValue = function() {
    if(this.defaultVal.length == 0 && this.parent) {
       return(this.parent.getObjValue(this.key));
-   } else {
+   }else {
       return(this.defaultVal);
    }
 }
@@ -891,6 +905,22 @@ Snippet.prototype.parseConfig = function(inString) {
             this.config.caseConvert = 'lowercase';
             inString = inString.replace("lowercase", "");
          }
+         //bind our discovered text configuration transforms - the bind is order dependent!
+         if(this.config.striphtml) {
+            this.transforms.push(this.stripHTML);
+         }
+         if(this.config.maxlen || this.config.htmlentities) {
+            this.transforms.push(this.transMaxEntities);
+         }
+         if(this.config.numberFormat) {
+            this.transforms.push(this.transNumberFormat);
+         }
+         if(this.config.dateFormat) {
+            this.transforms.push(this.transDateFormat);
+         }
+         if(this.config.caseConvert) {
+            this.transforms.push(this.transCase);
+         }
 
    }
 }
@@ -931,22 +961,22 @@ Snippet.prototype.transMaxEntities = function(obj) {
 }
 
 Snippet.prototype.transNumberFormat = function(obj) {
-  var out;
-    obj = obj.split('.');
-    if(obj[0].charAt(0) == '-') {
+   var out = '';
+   obj = obj.split('.');
+   if(obj[0].charAt(0) == '-') {
       out = '-';
       obj[0] = obj[0].substring(1);
-    }
-    out += this.config.numberFormat.intMask.substring(0, (this.config.numberFormat.intMask.length - obj[0].length)) + obj[0];
-    if(this.config.numberFormat.precisionMask) {
+   }
+   out += this.config.numberFormat.intMask.substring(0, (this.config.numberFormat.intMask.length - obj[0].length)) + obj[0];
+   if(this.config.numberFormat.precisionMask) {
       if(obj.hasOwnProperty(1)) {
-        out += '.' + (obj[1].substring(0, this.config.numberFormat.precisionMask.length) + this.config.numberFormat.precisionMask).substring(0, this.config.numberFormat.precisionMask.length);
+         out += '.' + (obj[1].substring(0, this.config.numberFormat.precisionMask.length) + this.config.numberFormat.precisionMask).substring(0, this.config.numberFormat.precisionMask.length);
       } else {
-        out += '.' + this.config.numberFormat.precisionMask;
+         out += '.' + this.config.numberFormat.precisionMask;
       }
-    }
-    obj = out;
-  return obj;
+   }
+   obj = out;
+   return obj;
 }
 
 Snippet.prototype.transDateFormat = function(obj) {
