@@ -1553,7 +1553,7 @@ if(typeof(jQuery) == "function") {
    jQuery.fn.urlParse = function(inAttr) {
       var url = window.location.href;
       if($(this).length > 0) {
-         if(typeof attr === 'undefined') {
+         if(typeof inAttr == 'undefined') {
             url = $(this).attr("href");
          } else {
             url = $(this).attr(inAttr);
