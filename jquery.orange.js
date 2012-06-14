@@ -2,8 +2,9 @@
  * Projekt Orange - Orange-J -
  * Orange Extension for jQuery
  * Bringing even more advanced coding laziness to the developer
- * Version 2.4.3 - beta
+ * Version 2.4.4 - beta
  * author: Donovan Walker
+ * Added support for anonymous arrays
  */
 
 /**
@@ -178,15 +179,17 @@ function Snippet(inString, inLib, inParent) {
 
       while(true) {
          match = this.tagOpen.exec(working);
+         console.log(match);
          if(match == null) break; //this will break us out of the loop when there are no more matches
          this.elements.push(working.substring(0, match.index)); //adding any static string before the match to the list of child elements
          working = working.substring(match.index);
 
          matchString = match[0];
+         console.log('matchString:' + matchString)
          var tag = matchString.substring(1, matchString.length -1);
          //if the child is an object or array snippet, we need to find the end tag and give it all the characters in-between
          tagType = this.tagType(tag);
-
+         console.log(tagType);
          switch(tagType) {
             case "object" :
             case "array" :
@@ -237,6 +240,7 @@ function Snippet(inString, inLib, inParent) {
 
 Snippet.prototype.getCloseTag = function(inTag) {
    var key, closeTag, tagSuffix;
+      console.log('getCloseTag:' + inTag);
    if(inTag.indexOf("#") == 0) {
       key = inTag.substring(1);
       if(inTag == "#func") {
@@ -251,6 +255,7 @@ Snippet.prototype.getCloseTag = function(inTag) {
       closeTag = "{" + tagSuffix + key + "}";
    }
    delete key, tagSuffix;
+   console.log('getCloseTag->' + closeTag);
    return closeTag;
 }
 
@@ -399,7 +404,7 @@ Snippet.prototype.constructIf = function(inString) {
 }
 
 
-Snippet.prototype.tagOpen = /{(#template |#lit\}|#func |#if |#elseif |#else|#include |([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*((\{\})|(\[\]|\(\)))*( |\}))/; //added support for '.' and vars that begin with numbers
+Snippet.prototype.tagOpen = /{(#template |#lit\}|#func |#if |#elseif |#else|#include |#\[\]}|([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*((\{\})|(\[\]|\(\)))*( |\}))/; //added support for '.' and vars that begin with numbers
 Snippet.prototype.tagOpenCloseBrace = /(^|[^\\])}/;  //not yet used
 
 
@@ -407,6 +412,7 @@ Snippet.prototype.tagOpenCloseBrace = /(^|[^\\])}/;  //not yet used
 * assumes tag has tag delimiters and any attributes removed
 */
 Snippet.prototype.tagType = function(inTag) {
+   console.log('tagtype:' + inTag)
    if(inTag.substring((inTag.length - 2)) == "[]") {
       return "array";
    } else if(inTag.substring((inTag.length - 2)) == "{}") {
@@ -495,6 +501,12 @@ Snippet.prototype.fillElseIf = function(obj) {
    return this.fillSnippets(obj)
 }
 
+Snippet.prototype.getPath = function() {
+   if(this.parent) {
+      return this.parent.getPath() + '->' + this.tag;
+   }
+   return this.tag;
+}
 
 Snippet.prototype.fillObj = function(obj) {
    var objType = typeof obj;
@@ -538,7 +550,7 @@ Snippet.prototype.fillArray = function(obj) {
       }
    } else {
       this.listLen = obj.length;
-      for(var j = 0; j < obj.length; j++) {
+      for(j = 0; j < obj.length; j++) {
          if(!this.config.maxlen || this.config.maxlen > j) { //swapped < for > fixes maxlen for arrays
             this.arrayInc = this.listInc = j;
             this.listPos = this.listInc + 1;
@@ -548,6 +560,7 @@ Snippet.prototype.fillArray = function(obj) {
                   "val":obj[j]
                });
             } else {
+               console.log(this.key + '.fillArray()', obj[j]);
                out += this.fillSnippets(obj[j]);
             }
             this.cycleInc++;
@@ -562,120 +575,18 @@ Snippet.prototype.fillArray = function(obj) {
 
 
 Snippet.prototype.fill = function(obj) {
-   //var  i, out = "",
-   //     myVal = "",
-        //objType = typeof obj;
-
+   console.log('fill:"'+this.key+"' " + this.type)
    this.obj = obj;
    if(typeof obj == "undefined" || obj == null) {
       obj = this.getDefaultValue();
-      return(obj);
-      //objType = typeof obj;
+      if(this.type == "value"){
+         return(obj);
+      }
    }
    var out = this.fillFunc(obj);
    this.obj = null;
    delete(this.obj);
    return(out);
-   /*
-   switch (this.type) {
-      /*case "value" :
-         obj = (obj != null)? obj.toString() : ''; //2.4.1
-         for(i = 0; i < this.transforms.length; i++) {
-           obj = this.transforms[i].call(this, obj);
-         }
-         return obj;*/
-      /*case "include" :
-         if(!this.sLib) {
-            throw "Snippet Error: cannot use include when not using SnippetLib";
-            return("");
-         }
-         return this.sLib.fill(this.includeSnippet, obj, {
-            parent:this
-         }); */
-      /*case "function" :
-         myVal = this.myFunction.call(this.parent, obj);
-         if(this.tag == "#func" && typeof(myVal) != "undefined") {
-            return myVal.toString();
-         }
-         if(typeof(myVal) == "undefined" || myVal === false) return "";
-         if(typeof(myVal) == "string" || typeof(myVal) == "number") return(myVal);
-         return this.fillSnippets(obj); */
-      /*case "if" : //we don't have a comparison call here because the elements store 'elseifs' and the root 'if' is an elseif that's in 1st position'
-         for(var i = 0; i < this.elements.length; i++) {
-            myVal = this.elements[i].fill(obj);
-            if(typeof myVal == "string") {
-               out += myVal;
-               i = this.elements.length;
-            }
-         }
-         break;*/
-      /*case "elseif" :
-         if(!this.myFunction.call(this.parent, obj)) return false;
-         return this.fillSnippets(obj)
-      */
-      /*case "object" :
-         if(this.tag == "root{}") {
-            //return this.fillSnippets(obj);
-            if(objType == "number" || objType == "string")
-               return this.fillSnippets({
-                  "val":obj
-               });
-            else if(objType == "object" && !(obj instanceof Array))
-               return this.fillSnippets(obj);
-         } else {
-            return this.fillSnippets(obj);
-         } */
-      /*case "array" :
-         //if(typeof(obj.length) == "undefined") { // old way assumed something MIGHT be numerically indexable if length exists... NOPE
-         this.cycleInc = this.arrayInc = this.listInc = 0;
-         this.listPos = 1;
-         if(!(obj instanceof Array)) {
-            if(typeof(obj) == "object") {
-               this.listLen = jQuery.len(obj);
-               for(var j in obj) if(obj.hasOwnProperty(j)) {
-                  this.arrayInc = j;
-                  if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
-                  if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
-                     out += this.fillSnippets({
-                        "val":obj[j]
-                     });
-                  } else {
-                     out += this.fillSnippets(obj[j]);
-                  }
-                  this.listInc++;
-                  this.listPos = this.listInc + 1;
-                  this.cycleInc++;
-               }
-            } else { //assumed number/string/boolean - this does not currently support an element that is an array/list element that is actually a function
-               return(out + obj); //2.4.1 obj was 'this.inner'
-            }
-         } else {
-            this.listLen = obj.length;
-            for(var j = 0; j < obj.length; j++) {
-               if(!this.config.maxlen || this.config.maxlen > j) { //swapped < for > fixes maxlen for arrays
-                  this.arrayInc = this.listInc = j;
-                  this.listPos = this.listInc + 1;
-                  if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
-                  if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
-                     out += this.fillSnippets({
-                        "val":obj[j]
-                     });
-                  } else {
-                     out += this.fillSnippets(obj[j]);
-                  }
-                  this.cycleInc++;
-               } else {
-                  out += this.config.maxend;
-                  j = obj.length;
-               }
-            }
-         }
-   }
-   //}
-   this.obj = null;
-   delete(this.obj);
-   return(out);
-       */
 }
 
 
@@ -694,20 +605,17 @@ Snippet.prototype.fillSnippets = function(obj) {
          if(this.cycleName && this.cycleName == snippet.tag) {
             out += snippet.fill(this.cycleValues[this.cycleInc]);
          } else {
-            switch(snippet.type) {
-               case "function" :
-               case "if" :
-               case "include" :
-                  out += snippet.fill(obj); //we do this because ifs & functions operate in the parent namespace
-                  break;
-               default :
-                  if(obj !== null) { //2.4.1 null check
-                     if(typeof obj[snippet.key] == "function") {
-                        out += snippet.fill(obj[snippet.key]());
-                     } else {
-                        out += snippet.fill(obj[snippet.key]);
-                     }
+            if(snippet.tag.indexOf("#") === 0) {
+               out += snippet.fill(obj); //we do this because ifs & functions operate in the parent namespace
+            }
+            else {               
+               if(obj !== null) { //2.4.1 null check
+                  if(typeof obj[snippet.key] == "function") {
+                     out += snippet.fill(obj[snippet.key]());
+                  } else {
+                     out += snippet.fill(obj[snippet.key]);
                   }
+               }
             }
          }
       }
