@@ -38,7 +38,71 @@ you would close the function with '}}' and then close the sub template with
 
  */
 
+/**
+ * src may be a template string:"", or a configuration object:{}
+
+ * 'root' snippets should only be contstructed with template strings. Configuration objects are for internal use only
+ * src:"" - a template string optinally containing special markup indicating lists, values, etc to be populated when the
+ * template is 'filled'
+ *
+ * src:{}
+ *		.src		("")				//the containing template string
+ *		.parent	(Snippet)		//the parent Snippet
+ *		.lib		(SnippetLib)	//the Snippet library
+ *		.tag		({})				//containing this Snippet's tag information (see function openTag for more details)
+ *			.open			("")		//full open tag up to the }
+ *			.options		("")		//options after the key expresion
+ *			.key			("")		//the current key (not stripped of '.' sub-children), but stripped of the 'type'
+ *			.traverse	(Number)	//number of parents to traverse 'up'
+ *			.type			("")		//value, object, list
+ */
 function Snippet(src) {
+  /* var i, openTag, src;
+
+	this.children	= [];
+	this.parent		= false,
+   this.lib			= false,
+	this.src			= ''
+
+	if(typeof src == 'string') {
+		if(arguments.length > 1) {
+			this.lib = arguments[1];
+		}
+		this.src = src;
+		this.tag = {
+         open:'{#{}}',
+         key:'#',
+			type:'object',
+			options:false,
+			traverse:0
+      }
+	} else {
+		this.lib = src.lib;
+		this.src = src.src;
+		this.parent = src.parent;
+		this.tag = src.tag;
+	}
+	if(this.tag.traverse) {
+		for(i = this.tag.traverse; i > 0; i--) {
+			if(this.parent.parent) {
+				this.parent = this.parent.parent;
+			}
+		}
+	}
+
+	src = this.src;
+
+	while(src.length > 0) {
+		openTag = this.openTag(src);
+		if(!openTag) {
+			this.children.push(src);
+		} else {
+
+
+			//find child snippets and static strings from source
+		}
+	}
+
    //var tag //child tag
    /*;
    this.parent = false;
@@ -77,7 +141,7 @@ Snippet.prototype.openTag = function (src) {
       fullKey:false,    //gives you enough to determine the path, and the attribute you should be getting data from, but not the type
       key:false,        //just the attribute you should be getting data from
       optionStr:false,  //logic, options, etc (modifiers for this key)
-      tag:false,        //tag can be everything but the '{', '}' and options/logic
+      tag:false,        //tag can be everything but the '{', '[options/logic]}'
       traverse:true,    //should we traverse up the tree if the current context has no value?
       type:false     //what kind of Snippet should it be? (function, value, etc)
    };
@@ -87,9 +151,9 @@ Snippet.prototype.openTag = function (src) {
    console.log('cfg.open:', cfg.open)
    cfg.openIndex  = cfg.open.index;
    cfg.open       = cfg.open[0]
-   cfg.tag        = cfg.open.substring(1, cfg.open.length - 1);
+   cfg.tag        = cfg.open.substring(1);
    cfg.fullKey    = cfg.tag;
-   cfg.optionStr  = src.substring(cfg.openIndex + cfg.open.length);
+   cfg.optionStr  = src.substring(cfg.openIndex + cfg.open.length);//;
    console.log('cfg.optionStr', cfg.optionStr)
    cfg.type       = this.tagType(cfg.tag);
    console.log(':)', cfg.type)
@@ -97,9 +161,9 @@ Snippet.prototype.openTag = function (src) {
    //find end of opening tag, and give closing tag if appropriate
    if(cfg.type == this.FUNCTION) {
       cfg.close = this.r.tagCloseFunction.exec(cfg.optionStr);
-      cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index);
+      cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index).replace(this.r.whitespaceLeading, '').substring(1);
       cfg.open = src.substring(cfg.openIndex, cfg.openIndex + cfg.open.length + cfg.close.index + cfg.close[0].length)
-      if(cfg.close[0] == this.TC_FUNC_STR) {
+      if(cfg.close[0] == this.TC_FUNC_VAL) {
          cfg.close = false;
       } else { //if (match[0] == this.TC_FUNC_VAL) {
          cfg.close = this.FUNCTION_CLOSE;
@@ -112,11 +176,14 @@ Snippet.prototype.openTag = function (src) {
       console.log('cfg.optionStr', cfg.optionStr)
       console.log('this.r.tagClose', this.r.tagClose)
       console.log('cfg.close', cfg.close)
-      cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index + 1);
+      cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index + 1).replace(this.r.whitespaceLeading, '');
       console.log(cfg.openIndex, cfg.close.index)
       cfg.open = src.substring(cfg.openIndex, (cfg.openIndex + cfg.open.length + cfg.close.index + cfg.close[0].length));
       cfg.close = false;
    }
+
+   console.log('cfg.optionStr - post trim', '"' + cfg.optionStr + '"')
+
    switch(cfg.type) {
       case this.FUNCTION :
          break;
@@ -227,15 +294,17 @@ Snippet.prototype.tagType = function(inTag) {
 //CLASS CONSTANTS & 'GLOBALS
 Snippet.prototype.r = {
    htmltag:/<(?:.|\s)*?>/,
+	whitespaceLeading:/\s+/,
    whitespaceG:/\s+/g,
    nbspG:/&nbsp;/g,
-   tagOpen: /{(#template |#lit\}|#func |#if |#elseif |#else|#include |#\[\]}|#}|(\.\.\/)*(\*([a-z]|[A-Z])+|([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*((\{\})|(\[\]))*)( |\}))/, //added support for '.' and vars that begin with numbers
+   //tagOpen: /{(#template |#lit\}|#func |#if |#elseif |#else|#include |#\[\]}|#}|(\.\.\/)*(\*([a-z]|[A-Z])+|([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*((\{\})|(\[\]))*)( |\}))/, //added support for '.' and vars that begin with numbers
+	tagOpen: /{((((\*|#)([a-z]|[A-Z])+)|(((\.\/)|(\.\.\/)*)([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*))((\{\})|(\[\]))?)/, //this tag recognizes all matches above (and more)
    parentG: /\.\.\//g,
    tagCloseFunction:/}\/}|}}/,
    tagClose: /^}|[^\\]}/
 }
 
-Snippet.prototype.TC_FUNC_STR = "}}";
+Snippet.prototype.TC_FUNC_MULTI = "}}";
 Snippet.prototype.TC_FUNC_VAL = "}/}";
 Snippet.prototype.LIST      = 'LIST';
 Snippet.prototype.OBJECT    = 'OBJECT';
@@ -252,3 +321,5 @@ Snippet.prototype.VALUE     = 'VALUE';
 Snippet.prototype.VAR       = 'VAR';
 
 //{#func {'some code' }/} {/func}
+
+//next tackle simple value tags in a snippet. (see the snippet structure @ the end.
