@@ -23,7 +23,7 @@ node is without needing to count on the ambiguities of upward traversal.
 '../' go up exactly one level to get your value. These are chainable, so one can
 say '../../../' to go up three levels.
 
-'.' stay here. no traversal
+'.' perform traversal if begins with this
 
 3. Functions now always begin with '{#func '.
 But they may still be used to output true/false/string if you so desire. If you
@@ -31,13 +31,15 @@ wish to have it always output the response of the function, the closing of a
 function is now '}/}'. if you wish to encapsulate a collection of sub-templates
 you would close the function with '}}' and then close the sub template with
 {/func}
+*??idea??functions are now called off the current object, as are attributes that are functions.
+* in both cases they are passed in the current snippet.
 **please note, 'func' is now a reserved name
 
 4. Template tags are now accessed by putting a star at the beginning ex:'*tagname'
 
 
  */
-
+//;(function() {
 /**
  * src may be a template string:"", or a configuration object:{}
 
@@ -56,13 +58,15 @@ you would close the function with '}}' and then close the sub template with
  *			.traverse	(Number)	//number of parents to traverse 'up'
  *			.type			("")		//value, object, list
  */
-function Snippet(src) {
-  /* var i, openTag, src;
-
+function Snippet(src, Q) {
+  /**/ var i, openTag, src;
+   Q = (typeof Q == "number")? Q+1:0
+	console.log("New Snippet. Level " + Q);
 	this.children	= [];
-	this.parent		= false,
-   this.lib			= false,
-	this.src			= ''
+	this.parent		= false;
+   this.lib			= false;
+	this.src			= '';
+	this.transforms = [];
 
 	if(typeof src == 'string') {
 		if(arguments.length > 1) {
@@ -72,6 +76,7 @@ function Snippet(src) {
 		this.tag = {
          open:'{#{}}',
          key:'#',
+			fullKey:'#',
 			type:'object',
 			options:false,
 			traverse:0
@@ -80,8 +85,25 @@ function Snippet(src) {
 		this.lib = src.lib;
 		this.src = src.src;
 		this.parent = src.parent;
-		this.tag = src.tag;
+		this.tag = src;
+		console.log(this.tag.fullKey);
+
+		/**TODO
+		 * here determine the 'key' src.from fullKey
+		 * if the fullKey has dots in it then the key is the string before the first '.'
+		 * 1. clone the src
+		 * 2. change this snippet's type to 'object'
+		 * 3. take the copied src and remove everything upto and including the first '.' from the fullKey
+		 * 4. use this modified src to create a new snippet in 'children'
+		 * 5. return, skipping the additional child fill process (since there will only be one child)
+		 *
+		 */
+
 	}
+
+	this.fill = this['fill' + this.tag.type];
+	//console.log('fill' + this.tag.type, this['fill' + this.tag.type])
+
 	if(this.tag.traverse) {
 		for(i = this.tag.traverse; i > 0; i--) {
 			if(this.parent.parent) {
@@ -91,17 +113,30 @@ function Snippet(src) {
 	}
 
 	src = this.src;
-
-	while(src.length > 0) {
-		openTag = this.openTag(src);
-		if(!openTag) {
-			this.children.push(src);
-		} else {
-
-
-			//find child snippets and static strings from source
+	i = 0;
+	while(src.length > 0 && i < 3) {
+			console.log('i = ', i);
+			openTag = this.openTag(src);
+			if(!openTag) {
+				this.children.push(src);
+				src = '';
+			} else {
+				openTag.parent = this;
+				if(openTag.openIndex > 0) {
+					this.children.push(src.substring(0, openTag.openIndex));
+				}
+				//find the closing tag if there is one.
+				src = openTag.src;
+				if(!openTag.close) {
+						openTag.src = '';
+				} else {
+					//find the correct closing tag
+				}
+				this.children.push(new Snippet(openTag, Q));
+				//find child snippets and static strings from source
+			}
+			i++
 		}
-	}
 
    //var tag //child tag
    /*;
@@ -132,33 +167,93 @@ function Snippet(src) {
 */
 }
 
-/**this needs to output the configuration as an object**/
+/*
+Snippet.prototype.fill = function(obj) {
+	return this.render(obj);
+	obj = (typeof obj === 'undefined' || obj === null)? '' : obj; //this should be replaced with something more context appropriate.
+	switch(this.tag.type) {
+		case this.VALUE :
+			out = obj.toString();
+			for(i = 0; )
+		case this.OBJECT :
+
+	}
+}*/
+
+
+Snippet.prototype.fill = function() {
+	return '\n Fill for this snippet key:' + this.tag.key + ' type:' + this.tag.type + ' is undefined.\n';
+}
+
+
+Snippet.prototype.fillobject = function(obj) {
+	var child, i, out = '';
+	this.obj = obj;
+	//handle obj begin passed in a null value here
+	for(i = 0; i < this.children.length; i++) {
+		if(typeof this.children[i] === 'string') {
+			out += this.children[i];
+		} else {
+
+			child = this.children[i];
+			if(child.tag.tag[0] == '#') {
+				out += child.fill(obj);
+			} else {
+				out += child.fill(obj[child.tag.key]);
+			}
+		}
+	}
+	return out;
+}
+
+
+Snippet.prototype.fillvalue = function(obj) {
+	console.log('fill ' + this.tag.key + ':', obj);
+	var i, out = (obj)? obj.toString() : '';
+	for(i = 0; i < this.transforms.length; i++) {
+		out = this.transforms[i].call(this, out);
+	}
+	return out;
+}
+
+
+/**
+ * Determines the location and basic properties pf the first opening tag within 'src'.
+ * It does NOT determine the location of the closing tag (if there is one)
+ * @param {string} src containing a properly formatted tag.
+ */
 Snippet.prototype.openTag = function (src) {
+	//console.log('OPEN TAG');
+	//initialize the configuration with appropriate defaults & find the opening of the next tag.
    var cfg = {
       close:false,      //the close tag, if one is needed
       open:this.r.tagOpen.exec(src), //the actual open tag
       openIndex:false,  //where the tag starts in the source string
       fullKey:false,    //gives you enough to determine the path, and the attribute you should be getting data from, but not the type
-      key:false,        //just the attribute you should be getting data from
+      key:'#',        //just the attribute you should be getting data from
       optionStr:false,  //logic, options, etc (modifiers for this key)
+		src:'',
       tag:false,        //tag can be everything but the '{', '[options/logic]}'
-      traverse:true,    //should we traverse up the tree if the current context has no value?
+      traverse:false,    //should we traverse up the tree if the current context has no value? traverse should only be true when the tag begins with '.'
       type:false     //what kind of Snippet should it be? (function, value, etc)
    };
 
-   //determine openTagOpening
+	/*
+	 *{../asdf.asdf[]}
+	 *{[]../asdf.asdf}
+	 */
+   //if there isn't another tag opening return false to the caller
    if(cfg.open === null) return false;
-   console.log('cfg.open:', cfg.open)
+   //parse configuration values not dependent on tag type.
    cfg.openIndex  = cfg.open.index;
    cfg.open       = cfg.open[0]
    cfg.tag        = cfg.open.substring(1);
    cfg.fullKey    = cfg.tag;
-   cfg.optionStr  = src.substring(cfg.openIndex + cfg.open.length);//;
-   console.log('cfg.optionStr', cfg.optionStr)
-   cfg.type       = this.tagType(cfg.tag);
-   console.log(':)', cfg.type)
+   cfg.optionStr  = src.substring(cfg.openIndex + cfg.open.length); //Might seem a little silly, but to avoid extra closure overhead we're assigning optionStr before we've cut the tail off
+   //the tag type will determine how the rest of tagOpen runs (closing tag, configuration, etc)
+	cfg.type       = this.tagType(cfg.tag);
 
-   //find end of opening tag, and give closing tag if appropriate
+	   //find end of opening tag, and give closing tag if appropriate
    if(cfg.type == this.FUNCTION) {
       cfg.close = this.r.tagCloseFunction.exec(cfg.optionStr);
       cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index).replace(this.r.whitespaceLeading, '').substring(1);
@@ -170,20 +265,20 @@ Snippet.prototype.openTag = function (src) {
       }
       cfg.cfgString = src.substring()
    } else {
-		console.log("cfg.optionStr", cfg.optionStr)
+		//console.log("cfg.optionStr - pre trim:", "'" + cfg.optionStr + "'")
       cfg.close = this.r.tagClose.exec(cfg.optionStr);
-		console.log('cfg', cfg)
-      console.log('cfg.optionStr', cfg.optionStr)
-      console.log('this.r.tagClose', this.r.tagClose)
-      console.log('cfg.close', cfg.close)
-      cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index + 1).replace(this.r.whitespaceLeading, '');
-      console.log(cfg.openIndex, cfg.close.index)
+		//console.log('cfg:', cfg)
+      //console.log('cfg.optionStr', cfg.optionStr)
+      //console.log('this.r.tagClose', this.r.tagClose)
+      //console.log('cfg.close', cfg.close)
+      cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index).replace(this.r.whitespaceLeading, '');
+      //console.log(cfg.openIndex, cfg.close.index)
       cfg.open = src.substring(cfg.openIndex, (cfg.openIndex + cfg.open.length + cfg.close.index + cfg.close[0].length));
       cfg.close = false;
    }
 
-   console.log('cfg.optionStr - post trim', '"' + cfg.optionStr + '"')
-
+   //console.log('cfg.optionStr - post trim', '"' + cfg.optionStr + '"')
+	//CLOSE TAG ASSGINMENT FOR NON FUNCTIONS (FUNCTION BLOCK IN PLACE TO SHOW IT WASN'T FORGOTTEN.. PERHAPS SHOULD BE MOVED WITHIN 'ELSE' BLOCK ABOVE
    switch(cfg.type) {
       case this.FUNCTION :
          break;
@@ -227,10 +322,18 @@ Snippet.prototype.openTag = function (src) {
          break;
    }
 
+	/**
+	 * NEXT
+	 * Determine traversal here from 'fullKey'
+	 * Strip fullKey of traversal component
+	 */
+
+	cfg.src = src.substring(cfg.openIndex + cfg.open.length);
+
    /*if((cfg.type != this.FUNCTION)) {
       cfg.optionStr = cfg.optionStr.substring(0, cfg.optionStr.indexOf('}'));
    }*/
-   console.log('cfg:', cfg)
+   console.log('cfg: ' + cfg.open + ':', cfg)
    return cfg;
 }
 
@@ -261,6 +364,7 @@ Snippet.prototype.closeTag = function(inTag) {
    return closeTag;
 }
 */
+
 
 /**
 * Every tag in the template has a type: value, object, list, function, etc...
@@ -298,28 +402,31 @@ Snippet.prototype.r = {
    whitespaceG:/\s+/g,
    nbspG:/&nbsp;/g,
    //tagOpen: /{(#template |#lit\}|#func |#if |#elseif |#else|#include |#\[\]}|#}|(\.\.\/)*(\*([a-z]|[A-Z])+|([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*((\{\})|(\[\]))*)( |\}))/, //added support for '.' and vars that begin with numbers
-	tagOpen: /{((((\*|#)([a-z]|[A-Z])+)|(((\.\/)|(\.\.\/)*)([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*))((\{\})|(\[\]))?)/, //this tag recognizes all matches above (and more)
+	//tagOpen: /{((((\*|#)([a-z]|[A-Z])+)|(((\.\/)|(\.\.\/)*)([0-9]|[a-z]|[A-Z]|_)+(\.([0-9]|[a-z]|[A-Z]|_)+)*))((\{\})|(\[\]))?)/, //this tag recognizes all matches above (and more)
+	tagOpen: /{((((\*|#)([a-z]|[A-Z])+)|(((\.\/)|(\.\.\/)*)(\.?([0-9]|[a-z]|[A-Z]|_)+)*))((\{\})|(\[\]))?)/, //this tag recognizes all matches above (and more)
    parentG: /\.\.\//g,
    tagCloseFunction:/}\/}|}}/,
    tagClose: /^}|[^\\]}/
 }
 
-Snippet.prototype.TC_FUNC_MULTI = "}}";
-Snippet.prototype.TC_FUNC_VAL = "}/}";
-Snippet.prototype.LIST      = 'LIST';
-Snippet.prototype.OBJECT    = 'OBJECT';
-Snippet.prototype.FUNCTION  = 'FUNCTION';
+Snippet.prototype.TC_FUNC_MULTI	= "}}";
+Snippet.prototype.TC_FUNC_VAL		= "}/}";
+Snippet.prototype.LIST				= 'list';
+Snippet.prototype.OBJECT			= 'object';
+Snippet.prototype.FUNCTION			= 'function';
 Snippet.prototype.FUNCTION_CLOSE = '{/func}';
-Snippet.prototype.IF        = 'IF';
-Snippet.prototype.IF_CLOSE  = "{/if}"
-Snippet.prototype.ELSEIF    = 'ELSEIF';
-Snippet.prototype.ELSE      = 'ELSE';
-Snippet.prototype.INCLUDE   = 'INCLUDE';
-Snippet.prototype.LITERAL   = 'LITERAL';
-Snippet.prototype.LITERAL_CLOSE = 'LITERAL_CLOSE';
-Snippet.prototype.VALUE     = 'VALUE';
-Snippet.prototype.VAR       = 'VAR';
+Snippet.prototype.IF					= 'if';
+Snippet.prototype.IF_CLOSE			= "{/if}"
+Snippet.prototype.ELSEIF			= 'elseif';
+Snippet.prototype.ELSE				= 'else';
+Snippet.prototype.INCLUDE			= 'include';
+Snippet.prototype.LITERAL			= 'literal';
+Snippet.prototype.LITERAL_CLOSE	= 'literal_close';
+Snippet.prototype.STRING			= 'string';
+Snippet.prototype.VALUE				= 'value';
+Snippet.prototype.VAR				= 'var';
 
+//})();
 //{#func {'some code' }/} {/func}
 
 //next tackle simple value tags in a snippet. (see the snippet structure @ the end.
