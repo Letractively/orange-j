@@ -37,6 +37,9 @@ you would close the function with '}}' and then close the sub template with
 
 4. Template tags are now accessed by putting a star at the beginning ex:'*tagname'
 
+*??IDEA??
+* Put this thing in a closure in such a way that we can update/change the tag enclosure (by default is { and }) so that
+* the regular expressions can be 're compiled'
 
  */
 //;(function() {
@@ -59,14 +62,16 @@ you would close the function with '}}' and then close the sub template with
  *			.type			("")		//value, object, list
  */
 function Snippet(src, Q) {
-  /**/ var i, openTag, src;
+  /**/ var i, openTag, src, tmpKey;
    Q = (typeof Q == "number")? Q+1:0
 	console.log("New Snippet. Level " + Q);
 	this.children	= [];
+	this.key			= '#';
 	this.parent		= false;
    this.lib			= false;
 	this.src			= '';
 	this.transforms = [];
+
 
 	if(typeof src == 'string') {
 		if(arguments.length > 1) {
@@ -104,13 +109,42 @@ function Snippet(src, Q) {
 	this.fill = this['fill' + this.tag.type];
 	//console.log('fill' + this.tag.type, this['fill' + this.tag.type])
 
-	if(this.tag.traverse) {
-		for(i = this.tag.traverse; i > 0; i--) {
+	if(this.tag.up) {
+		for(i = this.tag.up; i > 0; i--) {
 			if(this.parent.parent) {
 				this.parent = this.parent.parent;
 			}
 		}
 	}
+	/*
+	 * Here we look at full key, generate the current key, and modify the source if there is a dot-syntaxed element
+	 */
+	tmpKey = this.tag.fullKey.split('.');
+	this.tag.key = this.key = tmpKey.shift();
+	console.log('src: ||' + this.src + '||')
+	if(tmpKey.length > 0) {
+		if(this.tag.traverse) {
+			tmpKey.unshift('.');
+		}
+		tmpKey = tmpKey.join('.');
+		switch(this.tag.type) {
+			case this.OBJECT :
+				this.src = '{' + tmpKey  + this.OBJECT_SYMBOL  + ' ' + this.tag.optionStr + '}' + this.src + '{' + this.OBJECT_SYMBOL + tmpKey + '}';
+				break;
+			case this.LIST :
+				this.src = '{' + tmpKey  + this.LIST_SYMBOL  + ' ' + this.tag.optionStr + '}' + this.src + '{' + this.LIST_SYMBOL + tmpKey + '}';
+				break;
+			case this.VALUE :
+				this.src = '{' + tmpKey +' ' + this.tag.optionStr + '}' + this.src;
+				break;
+		}
+
+		/**
+		 * Change this type to object.
+		 */
+		this.tag.type = this.OBJECT;
+	}
+
 
 	src = this.src;
 	i = 0;
@@ -194,8 +228,8 @@ Snippet.prototype.fillobject = function(obj) {
 		if(typeof this.children[i] === 'string') {
 			out += this.children[i];
 		} else {
-
 			child = this.children[i];
+			console.log('child', child);
 			if(child.tag.tag[0] == '#') {
 				out += child.fill(obj);
 			} else {
@@ -235,7 +269,8 @@ Snippet.prototype.openTag = function (src) {
 		src:'',
       tag:false,        //tag can be everything but the '{', '[options/logic]}'
       traverse:false,    //should we traverse up the tree if the current context has no value? traverse should only be true when the tag begins with '.'
-      type:false     //what kind of Snippet should it be? (function, value, etc)
+      type:false,     //what kind of Snippet should it be? (function, value, etc)
+		up:false
    };
 
 	/*
@@ -265,17 +300,16 @@ Snippet.prototype.openTag = function (src) {
       }
       cfg.cfgString = src.substring()
    } else {
-		//console.log("cfg.optionStr - pre trim:", "'" + cfg.optionStr + "'")
       cfg.close = this.r.tagClose.exec(cfg.optionStr);
-		//console.log('cfg:', cfg)
-      //console.log('cfg.optionStr', cfg.optionStr)
-      //console.log('this.r.tagClose', this.r.tagClose)
-      //console.log('cfg.close', cfg.close)
       cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index).replace(this.r.whitespaceLeading, '');
-      //console.log(cfg.openIndex, cfg.close.index)
       cfg.open = src.substring(cfg.openIndex, (cfg.openIndex + cfg.open.length + cfg.close.index + cfg.close[0].length));
       cfg.close = false;
+		switch(cfg.type) {
+
+		}
    }
+
+
 
    //console.log('cfg.optionStr - post trim', '"' + cfg.optionStr + '"')
 	//CLOSE TAG ASSGINMENT FOR NON FUNCTIONS (FUNCTION BLOCK IN PLACE TO SHOW IT WASN'T FORGOTTEN.. PERHAPS SHOULD BE MOVED WITHIN 'ELSE' BLOCK ABOVE
@@ -293,13 +327,13 @@ Snippet.prototype.openTag = function (src) {
       case this.OBJECT :
          cfg.open = cfg.open[0];
          cfg.fullKey = cfg.tag(0, cfg.tag.length -3)
-         cfg.close = '{{}' + cfg.fullKey + '}';
+         cfg.close = '{' + this.OBJECT_SYMBOL + cfg.fullKey + '}';
          break;
 
       case this.LIST :
          cfg.open = cfg.open[0];
          cfg.fullKey = cfg.tag(0, cfg.tag.length -3)
-         cfg.close = '{[]' + cfg.fullKey + '}';
+         cfg.close = '{' + this.LIST_SYMBOL + cfg.fullKey + '}';
          break;
 
       case this.LITERAL :
@@ -321,6 +355,16 @@ Snippet.prototype.openTag = function (src) {
          }*/
          break;
    }
+
+	//dermine where the tag is supposed to get it's values from
+	cfg.traverse = cfg.fullKey.split('../');
+	cfg.up = cfg.traverse.length - 1; //start this number of objects 'up' in the tree.
+	cfg.fullKey = cfg.traverse.join('');
+	if(cfg.fullKey[0] === '.') {
+		cfg.traverse = true; //allow upward traversal to get values
+		cfg.fullKey = cfg.fullKey.substring(1);
+	}
+
 
 	/**
 	 * NEXT
@@ -412,7 +456,9 @@ Snippet.prototype.r = {
 Snippet.prototype.TC_FUNC_MULTI	= "}}";
 Snippet.prototype.TC_FUNC_VAL		= "}/}";
 Snippet.prototype.LIST				= 'list';
+Snippet.prototype.LIST_SYMBOL		= '[]';
 Snippet.prototype.OBJECT			= 'object';
+Snippet.prototype.OBJECT_SYMBOL	= '{}';
 Snippet.prototype.FUNCTION			= 'function';
 Snippet.prototype.FUNCTION_CLOSE = '{/func}';
 Snippet.prototype.IF					= 'if';
