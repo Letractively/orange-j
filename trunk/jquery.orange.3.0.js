@@ -62,9 +62,11 @@ you would close the function with '}}' and then close the sub template with
  *			.type			("")		//value, object, list
  */
 function Snippet(src, Q) {
+
   /**/ var i, openTag, src, tmpKey;
    Q = (typeof Q == "number")? Q+1:0
 	console.log("New Snippet. Level " + Q);
+	console.log(src);
 	this.children	= [];
 	this.key			= '#';
 	this.parent		= false;
@@ -121,12 +123,15 @@ function Snippet(src, Q) {
 	 */
 	tmpKey = this.tag.fullKey.split('.');
 	this.tag.key = this.key = tmpKey.shift();
-	console.log('src: ||' + this.src + '||')
+	console.log(this.tag.key + ' (' + this.tag.fullKey + ') [' + tmpKey.join('|') + '] src: ||' + this.src + '||')
 	if(tmpKey.length > 0) {
-		if(this.tag.traverse) {
-			tmpKey.unshift('.');
-		}
+
 		tmpKey = tmpKey.join('.');
+		if(this.tag.traverse) {
+			console.log('traverse');
+			tmpKey = '.' + tmpKey;
+		}
+		console.log('tmpKey:[' + tmpKey + ']');
 		switch(this.tag.type) {
 			case this.OBJECT :
 				this.src = '{' + tmpKey  + this.OBJECT_SYMBOL  + ' ' + this.tag.optionStr + '}' + this.src + '{' + this.OBJECT_SYMBOL + tmpKey + '}';
@@ -144,11 +149,12 @@ function Snippet(src, Q) {
 		 */
 		this.tag.type = this.OBJECT;
 	}
+	console.log(this.tag.key + ' src: ||' + this.src + '||')
 
 
 	src = this.src;
 	i = 0;
-	while(src.length > 0 && i < 3) {
+	while(src.length > 0 && i < 100) {
 			console.log('i = ', i);
 			openTag = this.openTag(src);
 			if(!openTag) {
@@ -360,9 +366,13 @@ Snippet.prototype.openTag = function (src) {
 	cfg.traverse = cfg.fullKey.split('../');
 	cfg.up = cfg.traverse.length - 1; //start this number of objects 'up' in the tree.
 	cfg.fullKey = cfg.traverse.join('');
+	console.log('tagOpen - cfg.fullKey (' + cfg.fullKey + ')');
 	if(cfg.fullKey[0] === '.') {
+		console.log('traverse for key: ' + cfg.fullKey);
 		cfg.traverse = true; //allow upward traversal to get values
 		cfg.fullKey = cfg.fullKey.substring(1);
+	} else {
+		cfg.traverse = false;
 	}
 
 
