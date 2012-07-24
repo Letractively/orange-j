@@ -65,8 +65,6 @@ function Snippet(src, Q) {
 
   /**/ var i, openTag, src, tmpKey;
    Q = (typeof Q == "number")? Q+1:0
-	console.log("New Snippet. Level " + Q);
-	console.log(src);
 	this.children	= [];
 	this.key			= '#';
 	this.parent		= false;
@@ -93,7 +91,6 @@ function Snippet(src, Q) {
 		this.src = src.src;
 		this.parent = src.parent;
 		this.tag = src;
-		console.log(this.tag.fullKey);
 
 		/**TODO
 		 * here determine the 'key' src.from fullKey
@@ -108,9 +105,6 @@ function Snippet(src, Q) {
 
 	}
 
-	this.fill = this['fill' + this.tag.type];
-	//console.log('fill' + this.tag.type, this['fill' + this.tag.type])
-
 	if(this.tag.up) {
 		for(i = this.tag.up; i > 0; i--) {
 			if(this.parent.parent) {
@@ -123,15 +117,12 @@ function Snippet(src, Q) {
 	 */
 	tmpKey = this.tag.fullKey.split('.');
 	this.tag.key = this.key = tmpKey.shift();
-	console.log(this.tag.key + ' (' + this.tag.fullKey + ') [' + tmpKey.join('|') + '] src: ||' + this.src + '||')
 	if(tmpKey.length > 0) {
 
 		tmpKey = tmpKey.join('.');
 		if(this.tag.traverse) {
-			console.log('traverse');
 			tmpKey = '.' + tmpKey;
 		}
-		console.log('tmpKey:[' + tmpKey + ']');
 		switch(this.tag.type) {
 			case this.OBJECT :
 				this.src = '{' + tmpKey  + this.OBJECT_SYMBOL  + ' ' + this.tag.optionStr + '}' + this.src + '{' + this.OBJECT_SYMBOL + tmpKey + '}';
@@ -149,7 +140,7 @@ function Snippet(src, Q) {
 		 */
 		this.tag.type = this.OBJECT;
 	}
-	console.log(this.tag.key + ' src: ||' + this.src + '||')
+	this.fill = this['fill' + this.tag.type];
 
 
 	src = this.src;
@@ -227,6 +218,7 @@ Snippet.prototype.fill = function() {
 
 
 Snippet.prototype.fillobject = function(obj) {
+	//console.log(this.tag.key + '.fillobject: ', obj);
 	var child, i, out = '';
 	this.obj = obj;
 	//handle obj begin passed in a null value here
@@ -235,7 +227,7 @@ Snippet.prototype.fillobject = function(obj) {
 			out += this.children[i];
 		} else {
 			child = this.children[i];
-			console.log('child', child);
+			//console.log('child', child);
 			if(child.tag.tag[0] == '#') {
 				out += child.fill(obj);
 			} else {
@@ -248,7 +240,7 @@ Snippet.prototype.fillobject = function(obj) {
 
 
 Snippet.prototype.fillvalue = function(obj) {
-	console.log('fill ' + this.tag.key + ':', obj);
+	//console.log(this.tag.key + '.fillvalue: ', obj);
 	var i, out = (obj)? obj.toString() : '';
 	for(i = 0; i < this.transforms.length; i++) {
 		out = this.transforms[i].call(this, out);
@@ -351,11 +343,8 @@ Snippet.prototype.openTag = function (src) {
          break;
 
       case this.VALUE :
-//         console.log(cfg.open)
-  //       console.log("open: '" + cfg.open[0].substring(cfg.open[0].length -1) + "'")
          /*if(cfg.open.substring(cfg.open.length -1) === " ") {
             cfg.close = this.r.tagClose.exec(src.substring(cfg.openIndex));
-            console.log('cfg.close',cfg.close)
             cfg.open = src.substring(cfg.openIndex, cfg.openIndex + cfg.close.index + cfg.close[0].length)
             //cfg.close = false;
          }*/
@@ -366,9 +355,7 @@ Snippet.prototype.openTag = function (src) {
 	cfg.traverse = cfg.fullKey.split('../');
 	cfg.up = cfg.traverse.length - 1; //start this number of objects 'up' in the tree.
 	cfg.fullKey = cfg.traverse.join('');
-	console.log('tagOpen - cfg.fullKey (' + cfg.fullKey + ')');
 	if(cfg.fullKey[0] === '.') {
-		console.log('traverse for key: ' + cfg.fullKey);
 		cfg.traverse = true; //allow upward traversal to get values
 		cfg.fullKey = cfg.fullKey.substring(1);
 	} else {
@@ -387,7 +374,6 @@ Snippet.prototype.openTag = function (src) {
    /*if((cfg.type != this.FUNCTION)) {
       cfg.optionStr = cfg.optionStr.substring(0, cfg.optionStr.indexOf('}'));
    }*/
-   console.log('cfg: ' + cfg.open + ':', cfg)
    return cfg;
 }
 
@@ -414,7 +400,6 @@ Snippet.prototype.closeTag = function(inTag) {
       closeTag = "{" + tagSuffix + key + "}";
    }
    delete key, tagSuffix;
-   console.log('getCloseTag->' + closeTag);
    return closeTag;
 }
 */
