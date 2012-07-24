@@ -61,17 +61,16 @@ you would close the function with '}}' and then close the sub template with
  *			.traverse	(Number)	//number of parents to traverse 'up'
  *			.type			("")		//value, object, list
  */
-function Snippet(src, Q) {
 
-  /**/ var i, openTag, src, tmpKey;
-   Q = (typeof Q == "number")? Q+1:0
+TO DO NEXT! SUPPORT LIST TAGS!
+function Snippet(src) {
+	var i, openTag, src, tmpKey;
 	this.children	= [];
 	this.key			= '#';
 	this.parent		= false;
    this.lib			= false;
 	this.src			= '';
 	this.transforms = [];
-
 
 	if(typeof src == 'string') {
 		if(arguments.length > 1) {
@@ -91,18 +90,6 @@ function Snippet(src, Q) {
 		this.src = src.src;
 		this.parent = src.parent;
 		this.tag = src;
-
-		/**TODO
-		 * here determine the 'key' src.from fullKey
-		 * if the fullKey has dots in it then the key is the string before the first '.'
-		 * 1. clone the src
-		 * 2. change this snippet's type to 'object'
-		 * 3. take the copied src and remove everything upto and including the first '.' from the fullKey
-		 * 4. use this modified src to create a new snippet in 'children'
-		 * 5. return, skipping the additional child fill process (since there will only be one child)
-		 *
-		 */
-
 	}
 
 	if(this.tag.up) {
@@ -134,14 +121,9 @@ function Snippet(src, Q) {
 				this.src = '{' + tmpKey +' ' + this.tag.optionStr + '}' + this.src;
 				break;
 		}
-
-		/**
-		 * Change this type to object.
-		 */
 		this.tag.type = this.OBJECT;
 	}
 	this.fill = this['fill' + this.tag.type];
-
 
 	src = this.src;
 	i = 0;
@@ -163,7 +145,7 @@ function Snippet(src, Q) {
 				} else {
 					//find the correct closing tag
 				}
-				this.children.push(new Snippet(openTag, Q));
+				this.children.push(new Snippet(openTag));
 				//find child snippets and static strings from source
 			}
 			i++
