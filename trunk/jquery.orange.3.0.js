@@ -36,10 +36,22 @@ you would close the function with '}}' and then close the sub template with
 **please note, 'func' is now a reserved name
 
 4. Template tags are now accessed by putting a star at the beginning ex:'*tagname'
+	*cycleIndex
+	*listKey
+	*listIndex
+   *listPosition = 1;
 
+
+
+*??IDEA??
+* For lists, possible support for multiple cycles per list
 *??IDEA??
 * Put this thing in a closure in such a way that we can update/change the tag enclosure (by default is { and }) so that
 * the regular expressions can be 're compiled'
+*??IDEA??
+* Add a randomly generated number to a second argument on 'fill', then keep 'obj' attached to a 'fill' hash that tracks
+* which objects were used on 'fill'. If used with some re-rendering item this would allow objects to self-render.
+* (possible future support for integration with backbone)
 
  */
 //;(function() {
@@ -62,7 +74,7 @@ you would close the function with '}}' and then close the sub template with
  *			.type			("")		//value, object, list
  */
 
-TO DO NEXT! SUPPORT LIST TAGS!
+//TO DO NEXT! SUPPORT LIST TAGS!
 function Snippet(src) {
 	var i, openTag, src, tmpKey;
 	this.children	= [];
@@ -123,7 +135,7 @@ function Snippet(src) {
 		}
 		this.tag.type = this.OBJECT;
 	}
-	this.fill = this['fill' + this.tag.type];
+	this.filler = this['fill' + this.tag.type];
 
 	src = this.src;
 	i = 0;
@@ -194,15 +206,84 @@ Snippet.prototype.fill = function(obj) {
 }*/
 
 
-Snippet.prototype.fill = function() {
-	return '\n Fill for this snippet key:' + this.tag.key + ' type:' + this.tag.type + ' is undefined.\n';
+Snippet.prototype.fill = function(obj) {
+	if(!this.filler) {
+		return '\n Fill for this snippet key:' + this.tag.key + ' type:' + this.tag.type + ' is undefined.\n';
+	}
+
+	//TODO: traverse function, if obj null/undefined, goes here, as does 'default' parser.
+	this.obj = obj;
+
+	return this.filler(obj);
+}
+
+/** TODO: this function is in development and hasn't been run yet. is being refactored from old version*/
+Snippet.prototype.filllist = function(obj) {
+	var i, j, out = '';
+	/*
+	 **cycleIndex
+	*listKey
+	*listIndex
+   *listPosition
+	*listLength
+	 */
+   this.cycleInc = this.arrayInc = this.listInc = 0;
+   this.listPos = 1;
+
+   this.cycleIndex = this.listKey = this.listIndex = 0;
+   this.listPosition = 1;
+
+   if(!(obj instanceof Array)) {
+      if(typeof obj == "object" || typeof obj == "function") {
+         this.listLen = 0;
+         this.listLength = 0;
+         for(i in obj) if(obj.hasOwnProperty(i)) {this.listLength++;}
+         for(j in obj) if(obj.hasOwnProperty(j)) {
+            this.listKey = j;
+            if(this.cycleIndex >= this.cycleValues.length) this.cycleIndex = 0;
+            if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
+               out += this.fillSnippets({
+                  "val":obj[j]
+               });
+            } else {
+               out += this.fillSnippets(obj[j]);
+            }
+            this.listInc++;
+            this.listPos = this.listInc + 1;
+            this.cycleInc++;
+         }
+      } else { //assumed number/string/boolean - this does not currently support an element that is an array/list element that is actually a function
+         return(out + obj); //2.4.1 obj was 'this.inner'
+      }
+   } else {
+      this.listLen = obj.length;
+      for(j = 0; j < obj.length; j++) {
+         if(!this.config.maxlen || this.config.maxlen > j) { //swapped < for > fixes maxlen for arrays
+            this.arrayInc = this.listInc = j;
+            this.listPos = this.listInc + 1;
+            if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
+            if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
+               out += this.fillSnippets({
+                  "val":obj[j]
+               });
+            } else {
+               console.log(this.key + '.fillArray()', obj[j]);
+               out += this.fillSnippets(obj[j]);
+            }
+            this.cycleInc++;
+         } else {
+            out += this.config.maxend;
+            j = obj.length;
+         }
+      }
+   }
+   return out;
 }
 
 
 Snippet.prototype.fillobject = function(obj) {
 	//console.log(this.tag.key + '.fillobject: ', obj);
 	var child, i, out = '';
-	this.obj = obj;
 	//handle obj begin passed in a null value here
 	for(i = 0; i < this.children.length; i++) {
 		if(typeof this.children[i] === 'string') {
