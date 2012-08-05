@@ -336,6 +336,10 @@ Snippet.prototype.fillSnippets = function(obj) {
  * @param {string} src containing a properly formatted tag.
  */
 Snippet.prototype.openTag = function (src) {
+	/**
+	 * Warning to developers. There's a bit of variable re-use in this function. This was done to keep memory use to a
+	 * minimum where possible. Templates can get pretty fancy.
+	 */
 	console.log('OPEN TAG ::', src);
 	//initialize the configuration with appropriate defaults & find the opening of the next tag.
    var cfg = {
@@ -360,7 +364,8 @@ Snippet.prototype.openTag = function (src) {
    if(cfg.open === null) return false;
    //parse configuration values not dependent on tag type.
    cfg.openIndex  = cfg.open.index;
-   cfg.open       = cfg.open[0]
+   cfg.open       = cfg.open[0];
+	console.log('cfg.open::', cfg.open)
    cfg.tag        = cfg.open.substring(1);
    cfg.fullKey    = cfg.tag;
    cfg.optionStr  = src.substring(cfg.openIndex + cfg.open.length); //Might seem a little silly, but to avoid extra closure overhead we're assigning optionStr before we've cut the tail off
@@ -382,6 +387,7 @@ Snippet.prototype.openTag = function (src) {
       cfg.close = this.r.tagClose.exec(cfg.optionStr);
       cfg.optionStr = cfg.optionStr.substring(0, cfg.close.index).replace(this.r.whitespaceLeading, '');
       cfg.open = src.substring(cfg.openIndex, (cfg.openIndex + cfg.open.length + cfg.close.index + cfg.close[0].length));
+		console.log('cfg.open - 2::', cfg.open)
       cfg.close = false;
 		switch(cfg.type) {
 
@@ -403,19 +409,19 @@ Snippet.prototype.openTag = function (src) {
          cfg.close = this.IF_CLOSE;
          break;
       case this.OBJECT :
-         cfg.open = cfg.open[0];
+         //cfg.open = cfg.open[0];
          cfg.fullKey = cfg.tag.substring(0, cfg.tag.length -2)
          cfg.close = '{' + this.OBJECT_SYMBOL + cfg.fullKey + '}';
          break;
 
       case this.LIST :
-         cfg.open = cfg.open[0];
+         //cfg.open = cfg.open[0];
          cfg.fullKey = cfg.tag.substring(0, cfg.tag.length -2)
          cfg.close = '{' + this.LIST_SYMBOL + cfg.fullKey + '}';
          break;
 
       case this.LITERAL :
-         cfg.open = cfg.open[0];
+         //cfg.open = cfg.open[0];
          cfg.close = this.LITERAL_CLOSE;
          break;
 
@@ -553,3 +559,4 @@ Snippet.prototype.VAR				= 'var';
 //{#func {'some code' }/} {/func}
 
 //NEXT: Fix openTag cfg.open attribute for lists (is showing just '{'. also get cfg.src returning correct value (all snippet string after the complete opening tag)
+//NEXT2: just did a little work to fix open tag issue mentioned on line above but haven't checked to make sure it's ok. Also need to do closing tag stuff for lists and objects!
