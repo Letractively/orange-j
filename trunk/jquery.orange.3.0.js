@@ -36,10 +36,10 @@ you would close the function with '}}' and then close the sub template with
 **please note, 'func' is now a reserved name
 
 4. Template tags are now accessed by putting a star at the beginning ex:'*tagname'
-	*cycleIndex
-	*listKey
-	*listIndex
-   *listPosition = 1;
+	*cycleIndex		= zero based index for which position the cycle is in.
+	*listIndex		= zero based list index.
+	*listKey			= just like listIndex for Arrays, contains attribute name for objects.
+   *listPosition	= one based listIndex;
 
 
 
@@ -140,7 +140,7 @@ function Snippet(src) {
 	src = this.src;
 	i = 0;
 	while(src.length > 0 && i < 100) {
-			console.log('i = ', i);
+			//console.log('i = ', i);
 			openTag = this.openTag(src);
 			if(!openTag) {
 				this.children.push(src);
@@ -217,7 +217,14 @@ Snippet.prototype.fill = function(obj) {
 	return this.filler(obj);
 }
 
-/** TODO: this function is in development and hasn't been run yet. is being refactored from old version*/
+/** TODO: this function is in development and hasn't been run yet. is being refactored from old version
+ *  TODO: ??IDEA??
+ *  1. first it checks for functions.
+ *  2. then it checks for to see if 'obj' is an array
+ *  3. if not then build an array of keys & use 'that' to iterate through the object
+ *
+ *
+ **/
 Snippet.prototype.filllist = function(obj) {
 	var i, j, out = '';
 	/*
@@ -227,55 +234,48 @@ Snippet.prototype.filllist = function(obj) {
    *listPosition
 	*listLength
 	 */
-   this.cycleInc = this.arrayInc = this.listInc = 0;
-   this.listPos = 1;
 
    this.cycleIndex = this.listKey = this.listIndex = 0;
    this.listPosition = 1;
-
+	if(typeof obj == 'function') {
+		//here we would/will call the function after getting the parent object.
+		//we then assgin it to 'obj' and follow our normal rendering pattern
+	}
    if(!(obj instanceof Array)) {
-      if(typeof obj == "object" || typeof obj == "function") {
-         this.listLen = 0;
+      if(typeof obj == "object") {
          this.listLength = 0;
          for(i in obj) if(obj.hasOwnProperty(i)) {this.listLength++;}
          for(j in obj) if(obj.hasOwnProperty(j)) {
             this.listKey = j;
-            if(this.cycleIndex >= this.cycleValues.length) this.cycleIndex = 0;
-            if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
-               out += this.fillSnippets({
-                  "val":obj[j]
-               });
-            } else {
-               out += this.fillSnippets(obj[j]);
-            }
-            this.listInc++;
-            this.listPos = this.listInc + 1;
-            this.cycleInc++;
+            if(this.cycleIndex >= this.cycleValues.length) {
+					this.cycleIndex = 0;
+				}
+            out += this.fillSnippets(obj[j]);
+            this.listIndex++;
+            this.listPosition++;
+            this.cycleIndex++;
          }
-      } else { //assumed number/string/boolean - this does not currently support an element that is an array/list element that is actually a function
+      } else {
          return(out + obj); //2.4.1 obj was 'this.inner'
       }
    } else {
-      this.listLen = obj.length;
-      for(j = 0; j < obj.length; j++) {
-         if(!this.config.maxlen || this.config.maxlen > j) { //swapped < for > fixes maxlen for arrays
-            this.arrayInc = this.listInc = j;
-            this.listPos = this.listInc + 1;
-            if(this.cycleInc >= this.cycleValues.length) this.cycleInc = 0;
-            if(typeof(obj[j]) == "string" || typeof(obj[j]) == "boolean" || typeof(obj[j]) == "number") {
-               out += this.fillSnippets({
-                  "val":obj[j]
-               });
-            } else {
-               console.log(this.key + '.fillArray()', obj[j]);
-               out += this.fillSnippets(obj[j]);
-            }
-            this.cycleInc++;
-         } else {
-            out += this.config.maxend;
-            j = obj.length;
-         }
+      i = this.listLength = obj.length;
+		//potential new maxlen logic
+		if(typeof this.config.maxlen == 'number' && this.config.maxlen < obj.length) {
+			i = this.config.maxlen;
+		}
+      for(j = 0; j < i; j++) {
+			this.listKey = this.listIndex = j;
+			this.listPosition = this.listIndex + 1;
+			if(this.cycleIndex >= this.cycleValues.length) {
+				this.cycleIndex = 0;
+			}
+			out += this.fillSnippets(obj[j]);
+			this.cycleIndex++;
       }
+		if(typeof this.config.maxlen == 'number' && this.config.maxlen < obj.length) {
+			out += this.config.maxend;
+		}
    }
    return out;
 }
@@ -311,6 +311,24 @@ Snippet.prototype.fillvalue = function(obj) {
 	return out;
 }
 
+Snippet.prototype.fillSnippets = function(obj) {
+   var child, i, out = '';
+	//handle obj begin passed in a null value here
+	for(i = 0; i < this.children.length; i++) {
+		if(typeof this.children[i] === 'string') {
+			out += this.children[i];
+		} else {
+			child = this.children[i];
+			if(child.tag.tag[0] == '#') {
+				out += child.fill(obj);
+			} else {
+				out += child.fill(obj[child.tag.key]);
+			}
+		}
+	}
+	return out;
+}
+
 
 /**
  * Determines the location and basic properties pf the first opening tag within 'src'.
@@ -318,7 +336,7 @@ Snippet.prototype.fillvalue = function(obj) {
  * @param {string} src containing a properly formatted tag.
  */
 Snippet.prototype.openTag = function (src) {
-	//console.log('OPEN TAG');
+	console.log('OPEN TAG ::', src);
 	//initialize the configuration with appropriate defaults & find the opening of the next tag.
    var cfg = {
       close:false,      //the close tag, if one is needed
@@ -327,7 +345,7 @@ Snippet.prototype.openTag = function (src) {
       fullKey:false,    //gives you enough to determine the path, and the attribute you should be getting data from, but not the type
       key:'#',        //just the attribute you should be getting data from
       optionStr:false,  //logic, options, etc (modifiers for this key)
-		src:'',
+		src:'',				//all of the source after the opening tag.
       tag:false,        //tag can be everything but the '{', '[options/logic]}'
       traverse:false,    //should we traverse up the tree if the current context has no value? traverse should only be true when the tag begins with '.'
       type:false,     //what kind of Snippet should it be? (function, value, etc)
@@ -371,7 +389,6 @@ Snippet.prototype.openTag = function (src) {
    }
 
 
-
    //console.log('cfg.optionStr - post trim', '"' + cfg.optionStr + '"')
 	//CLOSE TAG ASSGINMENT FOR NON FUNCTIONS (FUNCTION BLOCK IN PLACE TO SHOW IT WASN'T FORGOTTEN.. PERHAPS SHOULD BE MOVED WITHIN 'ELSE' BLOCK ABOVE
    switch(cfg.type) {
@@ -387,13 +404,13 @@ Snippet.prototype.openTag = function (src) {
          break;
       case this.OBJECT :
          cfg.open = cfg.open[0];
-         cfg.fullKey = cfg.tag(0, cfg.tag.length -3)
+         cfg.fullKey = cfg.tag.substring(0, cfg.tag.length -2)
          cfg.close = '{' + this.OBJECT_SYMBOL + cfg.fullKey + '}';
          break;
 
       case this.LIST :
          cfg.open = cfg.open[0];
-         cfg.fullKey = cfg.tag(0, cfg.tag.length -3)
+         cfg.fullKey = cfg.tag.substring(0, cfg.tag.length -2)
          cfg.close = '{' + this.LIST_SYMBOL + cfg.fullKey + '}';
          break;
 
@@ -413,6 +430,8 @@ Snippet.prototype.openTag = function (src) {
          }*/
          break;
    }
+	console.log(cfg.src);
+	console.log(cfg);
 
 	//dermine where the tag is supposed to get it's values from
 	cfg.traverse = cfg.fullKey.split('../');
@@ -533,4 +552,4 @@ Snippet.prototype.VAR				= 'var';
 //})();
 //{#func {'some code' }/} {/func}
 
-//next tackle simple value tags in a snippet. (see the snippet structure @ the end.
+//NEXT: Fix openTag cfg.open attribute for lists (is showing just '{'. also get cfg.src returning correct value (all snippet string after the complete opening tag)
