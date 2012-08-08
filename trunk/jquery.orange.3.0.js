@@ -76,7 +76,7 @@ you would close the function with '}}' and then close the sub template with
 
 //TO DO NEXT! SUPPORT LIST TAGS!
 function Snippet(src) {
-	var i, openTag, src, tmpKey;
+	var i, closeIndex, openTag, src, tmpKey;
 	this.children	= [];
 	this.key			= '#';
 	this.parent		= false;
@@ -146,6 +146,7 @@ function Snippet(src) {
 				this.children.push(src);
 				src = '';
 			} else {
+
 				openTag.parent = this;
 				if(openTag.openIndex > 0) {
 					this.children.push(src.substring(0, openTag.openIndex));
@@ -155,7 +156,11 @@ function Snippet(src) {
 				if(!openTag.close) {
 						openTag.src = '';
 				} else {
-					//find the correct closing tag
+					closeIndex = this.closeTag(openTag);
+					src = src.substring(closeIndex + openTag.close.length);
+					openTag.src = openTag.src.substring(0, closeIndex);
+					console.log('src: ', src);
+					console.log('openTag: ', openTag);
 				}
 				this.children.push(new Snippet(openTag));
 				//find child snippets and static strings from source
@@ -205,16 +210,37 @@ Snippet.prototype.fill = function(obj) {
 	}
 }*/
 
+Snippet.prototype.closeTag = function(openTag) {
+	var	i = 0,
+			tagStart = '{' + openTag.tag,
+			newMatchIndex = openTag.src.indexOf(tagStart),
+         matchCloseIndex = openTag.src.indexOf(openTag.close);
+
+	if(matchCloseIndex == -1) {
+		throw "Snippet Error: no close for '" + openTag.type + "' " + openTag.open;
+	}
+			//because there may be nested tags of the same type/name
+	while(newMatchIndex < matchCloseIndex && newMatchIndex > -1) {
+		newMatchIndex = openTag.src.indexOf(tagStart, newMatchIndex + tagStart.length);
+		matchCloseIndex = openTag.src.indexOf(openTag.close, matchCloseIndex + openTag.close.length);
+		if(matchCloseIndex == -1 && newMatchIndex == -1) throw "Snippet Error, no close for '" + openTag.type + "' " + openTag.open + "' iteration:" + i;
+		i++;
+	}
+	return matchCloseIndex;
+}
 
 Snippet.prototype.fill = function(obj) {
 	if(!this.filler) {
 		return '\n Fill for this snippet key:' + this.tag.key + ' type:' + this.tag.type + ' is undefined.\n';
 	}
-
 	//TODO: traverse function, if obj null/undefined, goes here, as does 'default' parser.
-	this.obj = obj;
+	if(typeof obj !== 'undefined') {
+		this.obj = obj;
+		return this.filler(obj);
+	} else {
+		return ''; //DEFAULTS SHOULD GO HERE
+	}
 
-	return this.filler(obj);
 }
 
 /** TODO: this function is in development and hasn't been run yet. is being refactored from old version
@@ -558,5 +584,4 @@ Snippet.prototype.VAR				= 'var';
 //})();
 //{#func {'some code' }/} {/func}
 
-//NEXT: Fix openTag cfg.open attribute for lists (is showing just '{'. also get cfg.src returning correct value (all snippet string after the complete opening tag)
-//NEXT2: just did a little work to fix open tag issue mentioned on line above but haven't checked to make sure it's ok. Also need to do closing tag stuff for lists and objects!
+//NEXT: test list rendering, rendering for undefined attributes and null attributes
